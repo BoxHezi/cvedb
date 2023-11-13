@@ -8,65 +8,65 @@ class CVE:
         self.data_type = data_type
         self.data_version = data_version
         self.cve_metadata = cve_metadata
-        self.container = containers
+        self.containers = containers
         vars(self).update(kwargs)
+
 
 '''
 CVE Metadata, contains two types:
-    1. Published
-    2. Rejected
+    1. Published - Required fields: cveId, assignOrgId, state
+    2. Rejected - Required fields: cveId, assignOrgId, state
 '''
-class Cve_Metadata:
-    def __init__(self, cve_id, assigner_org_id,  **kwargs):
-        self.cve_id = cve_id
-        self.assigner_org_id = assigner_org_id
+class CveMetadata:
+    def __init__(self, **kwargs):
         vars(self).update(kwargs)
 
-
-class Cve_Metadata_Published(Cve_Metadata):
-    def __init__(self, cve_id, assigner_org_id, state = "Published", **kwargs):
-        super().__init__(cve_id, assigner_org_id, kwargs)
-        self.state = state
+    def __str__(self) -> str:
+        return str(vars(self))
 
 
-class Cve_Metadata_Rejected(Cve_Metadata):
-    def __init__(self, cve_id, assigner_org_id, state = "Rejected", **kwargs):
-        super().__init__(cve_id, assigner_org_id, kwargs)
-        self.state = state
+class CveMetadataPublished(CveMetadata):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+class CveMetadataRejected(CveMetadata):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
 '''
 Container, contains three types:
-    1. CnaPublishedContainer
-    2. CnaRejectedContainer
-    3. AdpContainer
+    1. CnaPublishedContainer - Required fields: providerMetadata, descriptions, affected, references
+    2. CnaRejectedContainer - Required fields: providerMetadata, descriptions, affected, references
+    3. AdpContainer - Required fields: providerMetadata
 '''
 class Container:
-    def __init__(self, provider_metadata, **kwargs):
-        self.provider_metadata = provider_metadata
+    def __init__(self, **kwargs):
         vars(self).update(kwargs)
+
+    def __str__(self) -> str:
+        return str(vars(self))
 
 
 class CnaContainer(Container):
-    def __init__(self, provider_metadata, descriptions, affected, references, **kwargs):
-        super().__init__(provider_metadata, **kwargs)
-        self.descriptions = descriptions
-        self.affected = affected
-        self.references = references
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
 class CnaPublishedContainer(CnaContainer):
-    def __init__(self, provider_metadata, descriptions, affected, references, **kwargs):
-        super().__init__(provider_metadata, descriptions, affected, references, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
 class CnaRejectedContainer(CnaContainer):
-    def __init__(self, provider_metadata, descriptions, affected, references, **kwargs):
-        super().__init__(provider_metadata, descriptions, affected, references, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
 
 class AdpContainer(Container):
-    def __init__(self, provider_metadata, **kwargs):
-        super().__init__(provider_metadata, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
 '''
@@ -78,3 +78,6 @@ class Metrics:
         self.base_score = base_score
         self.vector_string = vector_string
         vars(self).update(kwargs)
+
+
+__all__ = ["CVE", "CveMetadataPublished", "CveMetadataRejected", "CnaPublishedContainer", "CnaRejectedContainer", "AdpContainer", "Metrics"]
