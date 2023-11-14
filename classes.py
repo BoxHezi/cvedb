@@ -1,5 +1,7 @@
 '''
 Class definiations are defined based on the CVE JSON V5 Schema: https://github.com/CVEProject/cve-schema/blob/master/schema/v5.0/CVE_JSON_5.0_schema.json
+
+CVE List V5 Github Repo: https://github.com/CVEProject/cvelistV5
 '''
 
 
@@ -10,6 +12,9 @@ class CVE:
         self.cve_metadata = cve_metadata
         self.containers = containers
         vars(self).update(kwargs)
+
+    def __str__(self) -> str:
+        return str(vars(self))
 
 
 '''
@@ -52,6 +57,10 @@ class Container:
 class CnaContainer(Container):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # TODO: query from NVD to get metrics data
+        if not "metrics" in vars(self)["cna"]:
+            # print("QUERY FROM NIST NVD")
+            pass
 
 
 class CnaPublishedContainer(CnaContainer):
@@ -67,6 +76,10 @@ class CnaRejectedContainer(CnaContainer):
 class AdpContainer(Container):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # TODO: query from NVD to get metrics data
+        if not "metrics" in vars(self)["adp"]:
+            # print("QUERY FROM NIST NVD")
+            pass
 
 
 '''
@@ -78,6 +91,9 @@ class Metrics:
         self.base_score = base_score
         self.vector_string = vector_string
         vars(self).update(kwargs)
+
+    def get_severity(self):
+        pass
 
 
 __all__ = ["CVE", "CveMetadataPublished", "CveMetadataRejected", "CnaPublishedContainer", "CnaRejectedContainer", "AdpContainer", "Metrics"]
