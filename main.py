@@ -43,9 +43,8 @@ def create_cve(data_json) -> CVE:
     # print(type(containers))
     # pprint(vars(containers))
 
-    cve = CVE(metadata, containers)
-    # print(vars(cve))
-    return cve
+    # print(vars(CVE(metadata, containers)))
+    return CVE(metadata, containers)
 
 
 def cve_to_json(cve) -> dict:
@@ -60,7 +59,7 @@ def cve_to_json(cve) -> dict:
 
 
 def run():
-    count = 0
+    # count = 0
     cve_path = pathlib.Path("./cvelistV5")
     # for f in cve_path.glob("**/CVE-2013-3703.json"):
     for f in cve_path.glob("**/CVE*.json"):
@@ -70,13 +69,18 @@ def run():
             data = json.load(file)
             cve = create_cve(data)
 
-        if isinstance(cve.containers, (CnaPublishedContainer, CnaRejectedContainer)):
-            if not "metrics" in vars(cve.containers)["cna"]:
-                count += 1
-        elif isinstance(cve.containers, AdpContainer):
-            if not "metrics" in vars(cve.containers)["adp"]:
-                count += 1
-    print(count)
+        # print(cve.containers.cna["metrics"])
+        # print(vars(cve.containers)["cna"]["metrics"])
+
+        # print(vars(cve))
+
+        # if isinstance(cve.containers, (CnaPublishedContainer, CnaRejectedContainer)):
+        #     if not "metrics" in vars(cve.containers)["cna"]:
+        #         count += 1
+        # elif isinstance(cve.containers, AdpContainer):
+        #     if not "metrics" in vars(cve.containers)["adp"]:
+        #         count += 1
+    # print(count)
 
             # print(type(cve_to_json(cve)))
             # print(json.dumps(cve_to_json(cve), indent=4))
@@ -102,7 +106,7 @@ def run():
         #         print(vars(cve.containers)["adp"]["metrics"])
                 # break
         # print(vars(cve.containers)["cna"]["metrics"])
-        # break
+        break
 
 
 if __name__ == "__main__":
