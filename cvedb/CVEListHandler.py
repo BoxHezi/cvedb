@@ -1,5 +1,4 @@
 import git
-from tqdm import tqdm
 
 import pathutils
 

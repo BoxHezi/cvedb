@@ -4,50 +4,6 @@ Class definiations are defined based on the CVE JSON V5 Schema: https://github.c
 CVE List V5 Github Repo: https://github.com/CVEProject/cvelistV5
 '''
 
-from nvdapi import CVEQuery
-
-from pprint import pprint
-
-
-class CVE:
-    def __init__(self, cve_metadata, containers, data_type = "CVE Record", data_version = "5.0", **kwargs) -> None:
-        self.data_type = data_type
-        self.data_version = data_version
-        self.cve_metadata = cve_metadata
-        self.containers = containers
-        self.create_metrics()
-        vars(self).update(kwargs)
-
-        print(vars(self.containers)["cna"]["metrics"])
-
-    def __str__(self) -> str:
-        return str(vars(self))
-
-    def contains_metrics(self) -> bool:
-        def check_metrics(container_type):
-            return "metrics" in vars(self.containers)[container_type]
-
-        if isinstance(self.containers, CnaContainer):
-            return check_metrics("cna")
-        elif isinstance(self.containers, AdpContainer):
-            return check_metrics("adp")
-
-    def create_metrics(self) -> "Metrics":
-        def create_metrics_helper(container_type):
-            query = CVEQuery()
-            if not "metrics" in vars(self.containers)[container_type]:
-                nvd_info = query.get_cve_by_id(self.cve_metadata.cveId)
-                return Metrics(True, **vars(nvd_info))
-            else:
-                return Metrics(**vars(self.containers)[container_type]["metrics"][0])
-
-        metrics = None
-        if isinstance(self.containers, CnaContainer):
-            metrics = create_metrics_helper("cna")
-        elif isinstance(self.containers, AdpContainer):
-            metrics = create_metrics_helper("adp")
-        self.containers.add_metrics(metrics)
-
 
 '''
 CVE Metadata, contains two types:
@@ -87,6 +43,14 @@ class Container:
 
     def add_metrics(self, container_type, metrics: "Metrics"):
         vars(self)[container_type].update({"metrics": metrics})
+
+    def get_container_type(self):
+        if isinstance(self, CnaContainer):
+            return "cna"
+        elif isinstance(self, AdpContainer):
+            return "adp"
+        else:
+            None
 
 
 class CnaContainer(Container):
@@ -147,4 +111,4 @@ class Metrics:
 
 
 
-__all__ = ["CVE", "CveMetadataPublished", "CveMetadataRejected", "CnaPublishedContainer", "CnaRejectedContainer", "AdpContainer", "Metrics"]
+__all__ = ["CveMetadataPublished", "CveMetadataRejected", "CnaPublishedContainer", "CnaRejectedContainer", "AdpContainer", "Metrics"]
