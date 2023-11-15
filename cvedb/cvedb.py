@@ -4,7 +4,10 @@ from typing import Optional
 
 from pprint import pprint
 
-from classes import *
+from CveClasses import *
+from cvelistV5Handler import CvelistHandler
+
+import pathutils
 
 
 def create_cve_metadata(**metadata) -> Optional[CveMetadataPublished | CveMetadataRejected]:
@@ -59,56 +62,50 @@ def cve_to_json(cve) -> dict:
 
 
 def run():
-    # count = 0
     cve_path = pathlib.Path("./cvelistV5")
-    # for f in cve_path.glob("**/CVE-2013-3703.json"):
+    # for f in cve_path.glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
     for f in cve_path.glob("**/CVE*.json"):
         # print(f)
         cve = None
         with open(f, "r") as file:
             data = json.load(file)
             cve = create_cve(data)
+        # break
 
-        # print(cve.containers.cna["metrics"])
-        # print(vars(cve.containers)["cna"]["metrics"])
 
-        # print(vars(cve))
+class CVEdb:
+    pass
 
-        # if isinstance(cve.containers, (CnaPublishedContainer, CnaRejectedContainer)):
-        #     if not "metrics" in vars(cve.containers)["cna"]:
-        #         count += 1
-        # elif isinstance(cve.containers, AdpContainer):
-        #     if not "metrics" in vars(cve.containers)["adp"]:
-        #         count += 1
-    # print(count)
 
-            # print(type(cve_to_json(cve)))
-            # print(json.dumps(cve_to_json(cve), indent=4))
+class CVEHandler:
+    def __init__(self, db_path):
+        self.db_path = pathutils.open_path(db_path)
 
-            # print(vars(cve))
-            # print(type(vars(cve)))
-            # print(type(cve))
+    def check_all(self):
+        for f in self.db_path.glob("**/CVE*.json"):
+            # print(f)
+            cve = None
+            with open(f, "r") as file:
+                data = json.load(file)
+            break
 
-            # print(vars(cve.cve_metadata))
-            # print(vars(cve.containers))
-            # print(json.dump(vars(cve), sys.stdout))
-            # for k, v in vars(cve).items():
-            #     print(k, v)
 
-        # if isinstance(cve.containers, (CnaPublishedContainer, CnaRejectedContainer)):
-        #     if "metrics" in vars(cve.containers)["cna"]:
-        #         print(cve.cve_metadata.cveId)
-        #         print(vars(cve.containers)["cna"]["metrics"])
-        #         # break
-        # elif isinstance(cve.containers, AdpContainer):
-        #     if "metrics" in vars(cve.containers)["adp"]:
-        #         print(cve.cve_metadata.cveId)
-        #         print(vars(cve.containers)["adp"]["metrics"])
-                # break
-        # print(vars(cve.containers)["cna"]["metrics"])
-        break
+def cvehandler_test():
+    cvelist = CvelistHandler()
+    print(f"CVE Local Database Path: {cvelist.get_local_repo_path()}")
+    cve_handler = CVEHandler(cvelist.get_local_repo_path())
+    cve_handler.check_all()
+
+def cvelistv5_test():
+    cve_list = CvelistHandler()
+    updated_file = cve_list.find_updated_files()
+    print(updated_file)
+    if len(updated_file) > 0:
+        cve_list.pull_from_remote()
 
 
 if __name__ == "__main__":
-    run()
+    # run()
+    # cvelistv5_test()
+    cvehandler_test()
 
