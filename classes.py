@@ -18,20 +18,29 @@ class CVE:
         self.create_metrics()
         vars(self).update(kwargs)
 
-        # print(vars(self.containers)["cna"]["metrics"])
+        print(vars(self.containers)["cna"]["metrics"])
 
     def __str__(self) -> str:
         return str(vars(self))
 
+    def contains_metrics(self) -> bool:
+        def check_metrics(container_type):
+            return "metrics" in vars(self.containers)[container_type]
+
+        if isinstance(self.containers, CnaContainer):
+            return check_metrics("cna")
+        elif isinstance(self.containers, AdpContainer):
+            return check_metrics("adp")
+
     def create_metrics(self) -> "Metrics":
         def create_metrics_helper(container_type):
+            query = CVEQuery()
             if not "metrics" in vars(self.containers)[container_type]:
                 nvd_info = query.get_cve_by_id(self.cve_metadata.cveId)
                 return Metrics(True, **vars(nvd_info))
             else:
                 return Metrics(**vars(self.containers)[container_type]["metrics"][0])
 
-        query = CVEQuery()
         metrics = None
         if isinstance(self.containers, CnaContainer):
             metrics = create_metrics_helper("cna")
@@ -76,13 +85,16 @@ class Container:
     def __str__(self) -> str:
         return str(vars(self))
 
+    def add_metrics(self, container_type, metrics: "Metrics"):
+        vars(self)[container_type].update({"metrics": metrics})
+
 
 class CnaContainer(Container):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def add_metrics(self, metrics: "Metrics"):
-        vars(self)["cna"].update({"metrics": metrics})
+        super().add_metrics("cna", metrics)
 
 
 class CnaPublishedContainer(CnaContainer):
@@ -100,7 +112,7 @@ class AdpContainer(Container):
         super().__init__(**kwargs)
 
     def add_metrics(self, metrics: "Metrics"):
-        vars(self)["adp"].update({"metrics": metrics})
+        super().add_metrics("adp", metrics)
 
 
 '''

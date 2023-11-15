@@ -41,7 +41,7 @@ KEY = os.getenv("NVD_KEY")
 # get_all_cves()
 
 class CVEQuery:
-    def __init__(self, key = KEY):
+    def __init__(self, key=KEY):
         self.key = key
 
     def get_cve_by_id(self, cve_id):
