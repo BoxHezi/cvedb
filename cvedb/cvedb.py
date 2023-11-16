@@ -1,12 +1,23 @@
 import json
 
-from CVEComponents import *
-from CVEHandler import *
-from CVEListHandler import CvelistHandler
+from tinydb import TinyDB, Query
+from tinydb.storages import JSONStorage
+from tinydb.middlewares import CachingMiddleware
+
+from cvetools.CVEComponents import *
+from cvetools.CVEHandler import *
+from cvetools.CVEListHandler import CvelistHandler
+
+import pathutils
 
 
 class CVEdb:
-    pass
+    DEFAULT_PROJECT_DIR = pathutils.home_dir() / ".config/cvedb"
+    DEFAULT_DB_FILE = DEFAULT_PROJECT_DIR / "cvedb.json"
+
+    def __init__(self):
+        storeage_path = str(CVEdb.DEFAULT_DB_FILE)
+        self.db = TinyDB(storeage_path, storage=CachingMiddleware(JSONStorage))
 
 
 def cve_to_json(cve) -> dict:

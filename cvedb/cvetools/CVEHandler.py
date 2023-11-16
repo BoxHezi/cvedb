@@ -1,7 +1,7 @@
 import json
 import pathutils
 
-from CVEComponents import *
+from cvetools.CVEComponents import *
 from nvdapi import CVEQuery
 
 
@@ -11,6 +11,8 @@ class CVE:
         self.data_version = data_version
         self.cve_metadata = cve_metadata
         self.containers = containers
+        # print(self.containers.get_container_type())
+        # print(f"JSON Contains metrics: {self.contains_metrics()}")
         self.create_metrics()
         vars(self).update(kwargs)
 
@@ -23,10 +25,9 @@ class CVE:
         def check_metrics(container_type):
             return "metrics" in vars(self.containers)[container_type]
 
-        if isinstance(self.containers, (CnaPublishedContainer, CnaRejectedContainer)):
-            return check_metrics("cna")
-        elif isinstance(self.containers, AdpContainer):
-            return check_metrics("adp")
+        return check_metrics(self.containers.get_container_type())
+        # can be done in one line, but keep helper function `check_metrics()` for better readability
+        # return "metrics" in vars(self.containers)[self.containers.get_container_type()]
 
     def create_metrics(self) -> "Metrics":
         def create_metrics_helper(container_type):
@@ -91,5 +92,5 @@ class CVEHandler:
         return cve
 
 
-__all__ = ["CVEHandler"]
+__all__ = ["CVEHandler", "CVE"]
 
