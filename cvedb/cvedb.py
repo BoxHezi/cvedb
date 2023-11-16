@@ -5,6 +5,10 @@ from CVEHandler import *
 from CVEListHandler import CvelistHandler
 
 
+class CVEdb:
+    pass
+
+
 def cve_to_json(cve) -> dict:
     out = {}
     for k, v in vars(cve).items():
@@ -23,9 +27,10 @@ def cvehandler_test():
     cve_handler = CVEHandler(cvelist.get_local_repo_path())
     pattern = "**/CVE*.json" # TODO: modify pattern based on cli arguments
     for f in cve_handler.get_cvelist_path().glob(pattern):
-    # for f in cve_handler.get_db_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
+    # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
         # print(f)
-        cve_handler.parse_cve_json(f)
+        cve = cve_handler.parse_cve_json(f)
+        # print(vars(cve))
         break
 
 

@@ -85,26 +85,32 @@ Metrics
 class Metrics:
     def __init__(self, from_nvd: bool = False, **kwargs):
         if not from_nvd:
-            if "cvssV3_1" in kwargs:
-                vars(self).update(kwargs["cvssV3_1"])
-            elif "cvssV3_0" in kwargs:
-                vars(self).update(kwargs["cvssV3_0"])
-            elif "cvssV2_0" in kwargs:
-                vars(self).update(kwargs["cvssV2_0"])
+            self.process_metrics_from_json(**kwargs)
         else:
-            def process_metrics(metrics):
-                del metrics[0].source
-                del metrics[0].type
-                vars(self).update(vars(metrics[0].cvssData))
-                del metrics[0].cvssData
-                vars(self).update(vars(metrics[0]))
+            self.process_metrics_from_nvd(**kwargs)
 
-            if "cvssMetricV31" in kwargs["metrics"]:
-                process_metrics(kwargs["metrics"].cvssMetricV31)
-            elif "cvssMetricV30" in kwargs["metrics"]:
-                process_metrics(kwargs["metrics"].cvssMetricV30)
-            elif "cvssMetricV2" in kwargs["metrics"]:
-                process_metrics(kwargs["metrics"].cvssMetricV2)
+    def process_metrics_from_json(self, **kwargs):
+        if "cvssV3_1" in kwargs:
+            vars(self).update(kwargs["cvssV3_1"])
+        elif "cvssV3_0" in kwargs:
+            vars(self).update(kwargs["cvssV3_0"])
+        elif "cvssV2_0" in kwargs:
+            vars(self).update(kwargs["cvssV2_0"])
+
+    def process_metrics_from_nvd(self, **kwargs):
+        def process_metrics(metrics):
+            del metrics[0].source
+            del metrics[0].type
+            vars(self).update(vars(metrics[0].cvssData))
+            del metrics[0].cvssData
+            vars(self).update(vars(metrics[0]))
+
+        if "cvssMetricV31" in kwargs["metrics"]:
+            process_metrics(kwargs["metrics"].cvssMetricV31)
+        elif "cvssMetricV30" in kwargs["metrics"]:
+            process_metrics(kwargs["metrics"].cvssMetricV30)
+        elif "cvssMetricV2" in kwargs["metrics"]:
+            process_metrics(kwargs["metrics"].cvssMetricV2)
 
     def __str__(self):
         return str(vars(self))

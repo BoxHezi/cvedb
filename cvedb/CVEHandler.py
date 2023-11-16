@@ -4,9 +4,6 @@ import pathutils
 from CVEComponents import *
 from nvdapi import CVEQuery
 
-class CVEdb:
-    pass
-
 
 class CVE:
     def __init__(self, cve_metadata, containers, data_type = "CVE Record", data_version = "5.0", **kwargs) -> None:
@@ -33,19 +30,13 @@ class CVE:
 
     def create_metrics(self) -> "Metrics":
         def create_metrics_helper(container_type):
-            query = CVEQuery()
             if not "metrics" in vars(self.containers)[container_type]:
-                nvd_info = query.get_cve_by_id(self.cve_metadata.cveId)
+                nvd_info = CVEQuery().get_cve_by_id(self.cve_metadata.cveId)
                 return Metrics(True, **vars(nvd_info))
             else:
                 return Metrics(**vars(self.containers)[container_type]["metrics"][0])
 
-        metrics = None
-        if isinstance(self.containers, (CnaPublishedContainer, CnaRejectedContainer)):
-            metrics = create_metrics_helper("cna")
-        elif isinstance(self.containers, AdpContainer):
-            metrics = create_metrics_helper("adp")
-        self.containers.add_metrics(metrics)
+        self.containers.add_metrics(create_metrics_helper(self.containers.get_container_type()))
 
 
 class CVEHandler:
