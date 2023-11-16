@@ -12,3 +12,7 @@ class CVEQuery:
         cve = list(nvdlib.searchCVE_V2(cveId=cve_id, key=self.key, delay=1 if self.key else None))[0]
         return cve
 
+    # current version of nvdlib does not have startIndex parameter support
+    # def get_cves_from_index(self, start_index, limit=2000):
+    #     cve = list(nvdlib.searchCVE_V2())
+

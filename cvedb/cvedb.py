@@ -21,7 +21,8 @@ def cvehandler_test():
     print(f"CVE Local Database Path: {cvelist.get_local_repo_path()}")
 
     cve_handler = CVEHandler(cvelist.get_local_repo_path())
-    for f in cve_handler.get_db_path().glob("**/CVE*.json"):
+    pattern = "**/CVE*.json" # TODO: modify pattern based on cli arguments
+    for f in cve_handler.get_cvelist_path().glob(pattern):
     # for f in cve_handler.get_db_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
         # print(f)
         cve_handler.parse_cve_json(f)

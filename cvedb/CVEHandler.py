@@ -49,14 +49,14 @@ class CVE:
 
 
 class CVEHandler:
-    def __init__(self, db_path):
-        self.db_path = pathutils.open_path(db_path)
+    def __init__(self, cvelist_path):
+        self.cvelist_path = pathutils.open_path(cvelist_path)
         self.state = None
         self.cveMetadata = None
         self.containers = None
 
-    def get_db_path(self):
-        return self.db_path
+    def get_cvelist_path(self):
+        return self.cvelist_path
 
     def parse_cve_json(self, json_path: str):
         with open(json_path, "r") as file:
