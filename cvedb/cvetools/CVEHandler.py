@@ -6,10 +6,10 @@ from nvdapi import CVEQuery
 
 
 class CVE:
-    def __init__(self, cve_metadata, containers, data_type = "CVE Record", data_version = "5.0", **kwargs) -> None:
+    def __init__(self, metadata, containers, data_type = "CVE Record", data_version = "5.0", **kwargs) -> None:
         self.data_type = data_type
         self.data_version = data_version
-        self.cve_metadata = cve_metadata
+        self.metadata = metadata
         self.containers = containers
         # print(self.containers.get_container_type())
         # print(f"JSON Contains metrics: {self.contains_metrics()}")
@@ -32,7 +32,7 @@ class CVE:
     def create_metrics(self) -> "Metrics":
         def create_metrics_helper(container_type):
             if not "metrics" in vars(self.containers)[container_type]:
-                nvd_info = CVEQuery().get_cve_by_id(self.cve_metadata.cveId)
+                nvd_info = CVEQuery().get_cve_by_id(self.metadata.cveId)
                 return Metrics(True, **vars(nvd_info))
             else:
                 return Metrics(**vars(self.containers)[container_type]["metrics"][0])
@@ -50,7 +50,7 @@ class CVEHandler:
     def get_cvelist_path(self):
         return self.cvelist_path
 
-    def parse_cve_json(self, json_path: str):
+    def create_cve_from_json(self, json_path: str):
         with open(json_path, "r") as file:
             data = json.load(file)
             try:
@@ -87,7 +87,11 @@ class CVEHandler:
         except Exception as e:
             raise e
 
+        # print(self.cveMetadata)
+        # print(self.containers)
         cve = CVE(self.cveMetadata, self.containers)
+        # print(cve)
+        # print(vars(cve.containers)["cna"]["metrics"])
         # print(vars(cve))
         return cve
 

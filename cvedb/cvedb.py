@@ -10,24 +10,32 @@ from cvetools.CVEListHandler import CvelistHandler
 
 import pathutils
 
+from pprint import pprint
+
 
 class CVEdb:
     DEFAULT_PROJECT_DIR = pathutils.home_dir() / ".config/cvedb"
     DEFAULT_DB_FILE = DEFAULT_PROJECT_DIR / "cvedb.json"
 
-    def __init__(self):
-        storeage_path = str(CVEdb.DEFAULT_DB_FILE)
+    def __init__(self, db_path = DEFAULT_DB_FILE):
+        storeage_path = str(db_path)
         self.db = TinyDB(storeage_path, storage=CachingMiddleware(JSONStorage))
 
+    def insert(self, cve):
+        self.db.insert(cve)
 
-def cve_to_json(cve) -> dict:
+    def close(self):
+        self.db.close()
+
+
+def jsonlialize_cve(data) -> dict:
     out = {}
-    for k, v in vars(cve).items():
+    for k, v in vars(data).items():
         try:
             json.dumps(v)  # check if the value is json serializable
             out.update({k: v})
         except TypeError:
-            out.update({k: cve_to_json(v)})
+            out.update({k: jsonlialize_cve(v)})
     return out
 
 
@@ -35,17 +43,25 @@ def cvehandler_test():
     cvelist = CvelistHandler()
     print(f"CVE Local Database Path: {cvelist.get_local_repo_path()}")
 
+    cvedb = CVEdb()
+
     cve_handler = CVEHandler(cvelist.get_local_repo_path())
     pattern = "**/CVE*.json" # TODO: modify pattern based on cli arguments
     for f in cve_handler.get_cvelist_path().glob(pattern):
     # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
         # print(f)
-        cve = cve_handler.parse_cve_json(f)
+        cve = cve_handler.create_cve_from_json(f)
+
+        # pprint(jsonlialize_cve(cve))
+        pprint(jsonlialize_cve(cve))
+        cvedb.insert(jsonlialize_cve(cve)) # insert to database; TODO: insert to corresponding table based CVE year
+        cvedb.close()
         # print(vars(cve))
         break
 
 
 def cvelistv5_test():
+
     cve_list = CvelistHandler()
     updated_file = cve_list.find_updated_files()
     print(updated_file)
