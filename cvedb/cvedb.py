@@ -1,4 +1,5 @@
 import json
+import argparse
 
 from tinydb import TinyDB, Query
 from tinydb.storages import JSONStorage
@@ -13,6 +14,11 @@ import pathutils
 from pprint import pprint
 
 
+def init_argparse() -> argparse.ArgumentParser:
+    arg = argparse.ArgumentParser(description="CVE Local database in JSON format", formatter_class=argparse.RawTextHelpFormatter)
+    return arg
+
+
 class CVEdb:
     DEFAULT_PROJECT_DIR = pathutils.home_dir() / ".config/cvedb"
     DEFAULT_DB_FILE = DEFAULT_PROJECT_DIR / "cvedb.json"
@@ -23,6 +29,15 @@ class CVEdb:
 
     def insert(self, cve):
         self.db.insert(cve)
+
+    def upsert(self, cve, condition):
+        # TODO: 1. insert cve if condition is False
+        # TODO: 2. update cve if condition is True
+        pass
+
+    def query_by_id(self, cve_id):
+        # TODO: implement query logic
+        pass
 
     def close(self):
         self.db.close()
@@ -53,7 +68,6 @@ def cvehandler_test():
         cve = cve_handler.create_cve_from_json(f)
 
         # pprint(jsonlialize_cve(cve))
-        pprint(jsonlialize_cve(cve))
         cvedb.insert(jsonlialize_cve(cve)) # insert to database; TODO: insert to corresponding table based CVE year
         cvedb.close()
         # print(vars(cve))
@@ -61,7 +75,6 @@ def cvehandler_test():
 
 
 def cvelistv5_test():
-
     cve_list = CvelistHandler()
     updated_file = cve_list.find_updated_files()
     print(updated_file)

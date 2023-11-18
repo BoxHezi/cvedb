@@ -13,7 +13,7 @@ class CVE:
         self.containers = containers
         # print(self.containers.get_container_type())
         # print(f"JSON Contains metrics: {self.contains_metrics()}")
-        self.create_metrics()
+        self.create_metrics(self.contains_metrics())
         vars(self).update(kwargs)
 
         # print(vars(self.containers)["cna"]["metrics"])
@@ -29,9 +29,9 @@ class CVE:
         # can be done in one line, but keep helper function `check_metrics()` for better readability
         # return "metrics" in vars(self.containers)[self.containers.get_container_type()]
 
-    def create_metrics(self) -> "Metrics":
+    def create_metrics(self, metrics_in_json: bool) -> "Metrics":
         def create_metrics_helper(container_type):
-            if not "metrics" in vars(self.containers)[container_type]:
+            if not metrics_in_json:
                 nvd_info = CVEQuery().get_cve_by_id(self.metadata.cveId)
                 return Metrics(True, **vars(nvd_info))
             else:
