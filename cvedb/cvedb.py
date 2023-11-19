@@ -62,7 +62,7 @@ class CVEdb:
     def __init__(self):
         self.table_count = 0
         self.total_data_count = 0
-        self.records: dict[str, Table] = {} # key-value pair, where key is table name, value is table
+        self.records: dict[int, Table] = {} # key-value pair, where key is table name, value is table
 
     def update_stat(self):
         self.table_count = len(self.records.keys())
@@ -85,6 +85,11 @@ class CVEdb:
         table = self.records[year]
         table.insert(data)
 
+    def search_by_id(self, cve_id):
+        year = int(cve_id.split("-")[1])
+        table = self.records[year]
+        return table.search_by_id(cve_id)
+
 
 class Table:
     def __init__(self, table_name):
@@ -98,15 +103,15 @@ class Table:
         self.data.update({data.get_cve_id(): data})
         self.data_count += 1
 
-    def upsert(self, data: CVE):
-        if not data.get_cve_id() in self.data:
-            self.data_count += 1
-        self.data.update({data.get_cve_id(): data})
+    # def upsert(self, data: CVE):
+    #     if not data.get_cve_id() in self.data:
+    #         self.data_count += 1
+    #     self.data.update({data.get_cve_id(): data})
 
-    def delete(self, data: CVE):
-        if not data.get_cve_id() in self.data:
-            raise KeyError("CVE ID not exists")
-        del self.data[data.get_cve_id()]
+    # def delete(self, data: CVE):
+    #     if not data.get_cve_id() in self.data:
+    #         raise KeyError("CVE ID not exists")
+    #     del self.data[data.get_cve_id()]
 
     def search_by_id(self, cve_id):
         if not cve_id in self.data:
