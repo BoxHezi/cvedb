@@ -43,7 +43,8 @@ class Container:
 
     def add_metrics(self, container_type, metrics: "Metrics"):
         # vars(self)[container_type].update({"metrics": vars(metrics)})
-        vars(self)[container_type]["metrics"] = vars(metrics)
+        # vars(self)[container_type]["metrics"] = vars(metrics)
+        vars(self)[container_type].update({"metrics": metrics})
 
     def get_container_type(self):
         if isinstance(self, CnaContainer):

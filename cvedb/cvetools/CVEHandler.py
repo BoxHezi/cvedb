@@ -39,6 +39,9 @@ class CVE:
 
         self.containers.add_metrics(create_metrics_helper(self.containers.get_container_type()))
 
+    def get_cve_id(self) -> str:
+        return self.metadata.cveId
+
     def get_year(self) -> int:
         info = self.metadata.cveId.split("-")
         return int(info[1])
@@ -55,7 +58,7 @@ class CVEHandler:
         return self.cvelist_path
 
     def create_cve_from_json(self, json_path: str):
-        print(json_path)
+        # print(json_path)
         with open(json_path, "r") as file:
             data = json.load(file)
             try:
