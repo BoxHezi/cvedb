@@ -19,10 +19,8 @@ class CloneProgress(git.RemoteProgress):
 
 class CvelistHandler:
     def __init__(self):
-        self.config_path = pathutils.home_dir() / ".config/cvedb"
-        pathutils.create_path(self.config_path)
-
-        self.local_repo_path = self.config_path / "cvelistV5"
+        pathutils.create_path(pathutils.DEFAULT_PROJECT_DIR)
+        self.local_repo_path = pathutils.DEFAULT_PROJECT_DIR / "cvelistV5"
 
         if not pathutils.path_exists(self.local_repo_path):
             print("Cloning Repo...")

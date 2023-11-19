@@ -1,8 +1,10 @@
 import pathlib
 
 
-def home_dir():
-    return pathlib.Path.home()
+DEFAULT_PROJECT_DIR = pathlib.Path.home() / ".config/cvedb"
+
+# def home_dir():
+#     return pathlib.Path.home()
 
 
 def create_path(path: str, parents=True, exist_ok=True):

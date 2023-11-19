@@ -13,22 +13,38 @@ import pathutils
 
 from pprint import pprint
 
+# TODO: invoke create_metrics when required (cli argument)
+# TODO: test performance of tinydb
+
 
 def init_argparse() -> argparse.ArgumentParser:
     arg = argparse.ArgumentParser(description="CVE Local database in JSON format", formatter_class=argparse.RawTextHelpFormatter)
+    arg.add_argument("-s", "--search", help="Search CVE(s) in local database\n", action="store_true")
+    arg.add_argument("-y", "--year", help="Specify the year for querying/searching CVEs")
+    # arg.add_argument("-p", "--pattern", help="Specific search pattern to search from local database") # TODO: add this for regex match
+    arg.add_argument("--create-metrics", help="Ensure that metrics will be created\n"
+                     "If there is no metrics in JSON file, query metrics information from NVD", action="store_true")
+    arg.add_argument("--db", help="Specify path for local database\n"
+                     "Default database path: $HOME/.config/cve/cvedb.json")
     return arg
 
 
 class CVEdb:
-    DEFAULT_PROJECT_DIR = pathutils.home_dir() / ".config/cvedb"
-    DEFAULT_DB_FILE = DEFAULT_PROJECT_DIR / "cvedb.json"
+    DEFAULT_DB_FILE = pathutils.DEFAULT_PROJECT_DIR / "cvedb.json"
 
     def __init__(self, db_path = DEFAULT_DB_FILE):
         storeage_path = str(db_path)
         self.db = TinyDB(storeage_path, storage=CachingMiddleware(JSONStorage))
+        self.table = None
 
-    def insert(self, cve):
-        self.db.insert(cve)
+    def set_table(self, table):
+        self.table = self.db.table(table)
+
+    def insert(self, cve: CVE):
+        year = cve.get_year()
+        if not self.table or self.table.name != year:
+            self.set_table(year)
+        self.table.insert(jsonlialize_cve(cve))
 
     def upsert(self, cve, condition):
         # TODO: 1. insert cve if condition is False
@@ -59,19 +75,16 @@ def cvehandler_test():
     print(f"CVE Local Database Path: {cvelist.get_local_repo_path()}")
 
     cvedb = CVEdb()
-
     cve_handler = CVEHandler(cvelist.get_local_repo_path())
     pattern = "**/CVE*.json" # TODO: modify pattern based on cli arguments
     for f in cve_handler.get_cvelist_path().glob(pattern):
     # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
         # print(f)
         cve = cve_handler.create_cve_from_json(f)
-
-        # pprint(jsonlialize_cve(cve))
-        cvedb.insert(jsonlialize_cve(cve)) # insert to database; TODO: insert to corresponding table based CVE year
-        cvedb.close()
+        cvedb.insert(cve) # insert to database; TODO: insert to corresponding table based CVE year
         # print(vars(cve))
-        break
+        # break
+    cvedb.close()
 
 
 def cvelistv5_test():
@@ -85,4 +98,6 @@ def cvelistv5_test():
 if __name__ == "__main__":
     # cvelistv5_test()
     cvehandler_test()
+    # args = init_argparse().parse_args()
+    # print(vars(args))
 
