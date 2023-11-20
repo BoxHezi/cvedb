@@ -1,5 +1,8 @@
 import argparse
 import pickle
+import zlib
+
+import sys
 
 from tqdm import tqdm
 
@@ -22,6 +25,22 @@ def init_argparse() -> argparse.ArgumentParser:
     # arg.add_argument("--db", help="Specify path for local database\n"
     #                  "Default database path: $HOME/.config/cve/cvedb.json")
     return arg
+
+
+def compress(data: bytes):
+    return zlib.compress(data)
+
+
+def decompress(data: bytes):
+    return zlib.decompress(data)
+
+
+def serialize(obj: object):
+    return pickle.dumps(obj)
+
+
+def deserialize(data: bytes):
+    return pickle.loads(data)
 
 
 def pickle_dump(path, obj):
@@ -54,8 +73,9 @@ def cvehandler_test():
     # print(cvedb.stat())
     # cvedb.close()
     # print(cvedb.search_by_id("CVE-2013-3703"))
-    pickle_dump(cvedb.OUTPUT_PICKLE_FILE, cvedb)
-
+    # pickle_dump(cvedb.OUTPUT_PICKLE_FILE, cvedb)
+    data = compress(serialize(cvedb))
+    pickle_dump(cvedb.OUTPUT_PICKLE_FILE, data)
 
 if __name__ == "__main__":
     # cvelistv5_test()
@@ -64,6 +84,6 @@ if __name__ == "__main__":
     # print(vars(args))
 
     # load from pickle test
-    # cvedb = pickle_load(CVEdb.OUTPUT_PICKLE_FILE)
-    # print(type(cvedb))
+    # data = pickle_load(CVEdb.OUTPUT_PICKLE_FILE)
+    # cvedb = deserialize(decompress(data))
     # print(cvedb)
