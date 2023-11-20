@@ -6,6 +6,8 @@ from cvetools.CVEListHandler import CvelistHandler
 
 from pprint import pprint
 
+import pathutils
+
 # TODO: invoke create_metrics when required (cli argument)
 # TODO: test performance of tinydb
 
@@ -59,6 +61,8 @@ example format can be described as:
 """
 
 class CVEdb:
+    OUTPUT_PICKLE_FILE = pathutils.DEFAULT_PROJECT_DIR / "cvedb.pickle"
+
     def __init__(self):
         self.table_count = 0
         self.total_data_count = 0
@@ -84,6 +88,12 @@ class CVEdb:
             self.records[year] = Table(year)
         table = self.records[year]
         table.insert(data)
+
+    def retrieve_records_by_year(self, year: int):
+        try:
+            return self.records[int(year)]
+        except:
+            raise KeyError("Invalid year")
 
     def search_by_id(self, cve_id):
         year = int(cve_id.split("-")[1])

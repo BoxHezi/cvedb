@@ -1,4 +1,5 @@
 import argparse
+import pickle
 
 from tqdm import tqdm
 
@@ -18,9 +19,19 @@ def init_argparse() -> argparse.ArgumentParser:
     # arg.add_argument("-p", "--pattern", help="Specific search pattern to search from local database") # TODO: add this for regex match
     arg.add_argument("--create-metrics", help="Ensure that metrics will be created\n"
                      "If there is no metrics in JSON file, query metrics information from NVD", action="store_true")
-    arg.add_argument("--db", help="Specify path for local database\n"
-                     "Default database path: $HOME/.config/cve/cvedb.json")
+    # arg.add_argument("--db", help="Specify path for local database\n"
+    #                  "Default database path: $HOME/.config/cve/cvedb.json")
     return arg
+
+
+def pickle_dump(path, obj):
+    with open(path, "wb") as file:
+        pickle.dump(obj, file)
+
+
+def pickle_load(path):
+    with open(path, "rb") as file:
+        return pickle.load(file)
 
 
 def cvehandler_test():
@@ -43,6 +54,7 @@ def cvehandler_test():
     # print(cvedb.stat())
     # cvedb.close()
     # print(cvedb.search_by_id("CVE-2013-3703"))
+    pickle_dump(cvedb.OUTPUT_PICKLE_FILE, cvedb)
 
 
 if __name__ == "__main__":
@@ -50,3 +62,8 @@ if __name__ == "__main__":
     cvehandler_test()
     # args = init_argparse().parse_args()
     # print(vars(args))
+
+    # load from pickle test
+    # cvedb = pickle_load(CVEdb.OUTPUT_PICKLE_FILE)
+    # print(type(cvedb))
+    # print(cvedb)
