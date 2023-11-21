@@ -1,12 +1,9 @@
 import json
 
-from cvetools.CVEComponents import *
-from cvetools.CVEHandler import *
-from cvetools.CVEListHandler import CvelistHandler
-
-from pprint import pprint
-
-import pathutils
+from .cvetools.CVEComponents import *
+from .cvetools.CVEHandler import *
+from .cvetools.CVEListHandler import CvelistHandler
+from . import pathutils
 
 # TODO: invoke create_metrics when required (cli argument)
 # TODO: test performance of tinydb
@@ -57,7 +54,6 @@ example format can be described as:
         'CVE-2022-0002': {}
     }
 }
-
 """
 
 class CVEdb:
@@ -82,12 +78,12 @@ class CVEdb:
         print(f"Table Count: {self.table_count}")
         print(f"Total Data Count: {self.total_data_count}")
 
-    def insert(self, data: CVE):
+    def upsert(self, data: CVE):
         year = data.get_year()
         if year not in self.records:
             self.records[year] = Table(year)
         table = self.records[year]
-        table.insert(data)
+        table.upsert(data)
 
     def retrieve_records_by_year(self, year: int):
         try:
@@ -107,21 +103,11 @@ class Table:
         self.data_count = 0
         self.data = {}
 
-    def insert(self, data: CVE):
+    def upsert(self, data: CVE):
         if data.get_cve_id() in self.data:
             raise KeyError("Duplicate CVE ID found in database")
         self.data.update({data.get_cve_id(): data})
         self.data_count += 1
-
-    # def upsert(self, data: CVE):
-    #     if not data.get_cve_id() in self.data:
-    #         self.data_count += 1
-    #     self.data.update({data.get_cve_id(): data})
-
-    # def delete(self, data: CVE):
-    #     if not data.get_cve_id() in self.data:
-    #         raise KeyError("CVE ID not exists")
-    #     del self.data[data.get_cve_id()]
 
     def search_by_id(self, cve_id):
         if not cve_id in self.data:
@@ -147,12 +133,6 @@ def cvelistv5_test():
     if len(updated_file) > 0:
         cve_list.pull_from_remote()
 
-
-# if __name__ == "__main__":
-#     # cvelistv5_test()
-#     cvehandler_test()
-#     # args = init_argparse().parse_args()
-#     # print(vars(args))
 
 __all__ = ["CVEdb"]
 

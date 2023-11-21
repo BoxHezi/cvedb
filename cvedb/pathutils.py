@@ -2,6 +2,7 @@ import pathlib
 
 
 DEFAULT_PROJECT_DIR = pathlib.Path.home() / ".config/cvedb"
+DEFAULT_PROJECT_LOCAL_REPO = DEFAULT_PROJECT_DIR / "cvelistV5"
 
 # def home_dir():
 #     return pathlib.Path.home()

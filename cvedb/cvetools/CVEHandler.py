@@ -1,8 +1,8 @@
 import json
-import pathutils
 
-from cvetools.CVEComponents import *
-from nvdapi import CVEQuery
+from .. import pathutils
+from .CVEComponents import *
+from ..nvdapi import CVEQuery
 
 
 class CVE:
