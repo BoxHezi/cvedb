@@ -64,19 +64,19 @@ class CVEdb:
         self.total_data_count = 0
         self.records: dict[int, Table] = {} # key-value pair, where key is table name, value is table
 
-    def update_stat(self):
-        self.table_count = len(self.records.keys())
-        count = 0
-        for _, v in self.records.items():
-            count += v.data_count
-        self.total_data_count = count
+    # def update_stat(self):
+    #     self.table_count = len(self.records.keys())
+    #     count = 0
+    #     for _, v in self.records.items():
+    #         count += v.data_count
+    #     self.total_data_count = count
 
-    def stat(self):
-        for k, v in self.records.items():
-            print(f"{k}: {v.data_count}")
+    # def stat(self):
+    #     for k, v in self.records.items():
+    #         print(f"{k}: {v.data_count}")
 
-        print(f"Table Count: {self.table_count}")
-        print(f"Total Data Count: {self.total_data_count}")
+    #     print(f"Table Count: {self.table_count}")
+    #     print(f"Total Data Count: {self.total_data_count}")
 
     def upsert(self, data: CVE):
         year = data.get_year()
@@ -104,10 +104,9 @@ class Table:
         self.data = {}
 
     def upsert(self, data: CVE):
-        if data.get_cve_id() in self.data:
-            raise KeyError("Duplicate CVE ID found in database")
+        if not data.get_cve_id() in self.data:
+            self.data_count += 1
         self.data.update({data.get_cve_id(): data})
-        self.data_count += 1
 
     def search_by_id(self, cve_id):
         if not cve_id in self.data:
@@ -115,23 +114,23 @@ class Table:
         return self.data[cve_id]
 
 
-def jsonlialize_cve(data) -> dict:
-    out = {}
-    for k, v in vars(data).items():
-        try:
-            json.dumps(v)  # check if the value is json serializable
-            out.update({k: v})
-        except TypeError:
-            out.update({k: jsonlialize_cve(v)})
-    return out
+# def jsonlialize_cve(data) -> dict:
+#     out = {}
+#     for k, v in vars(data).items():
+#         try:
+#             json.dumps(v)  # check if the value is json serializable
+#             out.update({k: v})
+#         except TypeError:
+#             out.update({k: jsonlialize_cve(v)})
+#     return out
 
 
-def cvelistv5_test():
-    cve_list = CvelistHandler()
-    updated_file = cve_list.find_updated_files()
-    print(updated_file)
-    if len(updated_file) > 0:
-        cve_list.pull_from_remote()
+# def cvelistv5_test():
+#     cve_list = CvelistHandler()
+#     updated_file = cve_list.find_updated_files()
+#     print(updated_file)
+#     if len(updated_file) > 0:
+#         cve_list.pull_from_remote()
 
 
 __all__ = ["CVEdb"]

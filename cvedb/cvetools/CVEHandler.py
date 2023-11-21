@@ -14,7 +14,7 @@ class CVE:
         # print(self.containers.get_container_type())
         # print(f"JSON Contains metrics: {self.contains_metrics()}")
         # self.create_metrics(self.contains_metrics())
-        vars(self).update(kwargs)
+        # vars(self).update(kwargs)
 
         # print(vars(self.containers)["cna"]["metrics"])
 

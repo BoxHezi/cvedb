@@ -21,12 +21,10 @@ class CvelistHandler:
     def __init__(self):
         pathutils.create_path(pathutils.DEFAULT_PROJECT_DIR)
         self.local_repo_path = pathutils.DEFAULT_PROJECT_DIR / "cvelistV5"
-        self.newly_clone = False
 
         if not pathutils.path_exists(self.local_repo_path):
             print("Cloning Repo...")
             self.clone_to_local()
-            self.newly_clone = True
         self.repo = git.Repo(self.local_repo_path)
 
     def clone_to_local(self):
@@ -40,7 +38,7 @@ class CvelistHandler:
 
         updated_file = []
         for file in self.repo.index.diff(remote_hash):
-            if "delta" in file.a_path:
+            if "delta" in file.a_path:  # ignore delta.json and deltaLog.json
                 continue
             updated_file.append(file.a_path)
         return updated_file

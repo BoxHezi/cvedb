@@ -15,10 +15,8 @@ from . import pathutils
 def init_argparse() -> argparse.ArgumentParser:
     arg = argparse.ArgumentParser(description="CVE Local database in JSON format", formatter_class=argparse.RawTextHelpFormatter)
     data_group = arg.add_argument_group("CVE Database Arguments")
-    data_group.add_argument("--repo", help="Clone github repo and parse CVE JSON files\n"
-                     "If `--repo` is provided, other arguments will be ignored\n"
-                     "If no exists local repo, git clone will be performed\n"
-                     "Otherwise, it will check if there is any new updated file", action="store_true")
+    data_group.add_argument("--clone", help="Clone Github cvelistV5 repo", action="store_true")
+    data_group.add_argument("--update", help="Check if there is any update from remote repo", action="store_true")
 
     search_group = arg.add_argument_group("Search CVE Arguments")
     search_group.add_argument("-s", "--search", help="Search CVE(s) in local database\n", action="store_true")
@@ -31,57 +29,72 @@ def init_argparse() -> argparse.ArgumentParser:
     return arg
 
 
-def clone_repo():
-    cvelist = CvelistHandler()
-    return cvelist
-
-
-def handle_cve_json(cvelist: CvelistHandler, pattern: str = "**/CVE-*.json", files: list = None):
-    # TODO: add pattern to cli arguments
-    print(f"CVE Local Repo Path: {cvelist.get_local_repo_path()}")
-
-    cvedb = CVEdb()
-    cve_handler = CVEHandler(cvelist.get_local_repo_path())
-    if files:
-        for f in tqdm(files):
-            abs_path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
-            cve = cve_handler.create_cve_from_json(abs_path)
-            if cve.contains_metrics():
-                cve.create_metrics(True)
-            else:
-                pass
-            cvedb.upsert(cve)
-    else:
-        for f in tqdm(cve_handler.get_cvelist_path().glob(pattern)):
-        # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
-            cve = cve_handler.create_cve_from_json(f)
-            if cve.contains_metrics():
-                cve.create_metrics(True)
-            else:
-                # TODO: call create_metrics when cli gives certain argument
-                pass
-            cvedb.upsert(cve)
-            # break
+def dump_cvedb(cvedb: CVEdb, out_path: str = CVEdb.OUTPUT_PICKLE_FILE):
+    print(f"Store cvedb to {out_path}")
     data = pickleutils.compress(pickleutils.serialize(cvedb))
-    pickleutils.pickle_dump(cvedb.OUTPUT_PICKLE_FILE, data)
+    pickleutils.pickle_dump(out_path, data)
+
+
+def load_or_create_cvedb():
+    try:
+        print(f"Loading cve database from {CVEdb.OUTPUT_PICKLE_FILE}")
+        cvedb = pickleutils.pickle_load(CVEdb.OUTPUT_PICKLE_FILE)
+        cvedb = pickleutils.deserialize(pickleutils.decompress(cvedb))
+        return cvedb
+    except:
+        return CVEdb()
+
+
+def handle_updated_cve(cvelist: CvelistHandler, files: list = [], args: argparse.Namespace = None):
+    cvedb = load_or_create_cvedb()
+    cve_handler = CVEHandler(cvelist.get_local_repo_path())
+    for f in tqdm(files):
+        path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
+        cve = cve_handler.create_cve_from_json(path)
+        if cve.contains_metrics():
+            cve.create_metrics(True)
+        else:
+            # TODO: call create_metrics when cli gives certain argument
+            if args.create_metrics:
+                cve.create_metrics(False)
+        cvedb.upsert(cve)
+    dump_cvedb(cvedb)
+
+
+def handle_cve_json(cvelist: CvelistHandler, pattern: str = "**/CVE-*.json", args: argparse.Namespace = None):
+    # TODO: add pattern to cli arguments
+    # print(f"CVE Local Repo Path: {cvelist.get_local_repo_path()}")
+    cvedb = load_or_create_cvedb()
+    cve_handler = CVEHandler(cvelist.get_local_repo_path())
+    for f in tqdm(cve_handler.get_cvelist_path().glob(pattern)):
+    # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
+        cve = cve_handler.create_cve_from_json(f)
+        if cve.contains_metrics():
+            cve.create_metrics(True)
+        else:
+            # TODO: call create_metrics when cli gives certain argument
+            if args.create_metrics:
+                cve.create_metrics(False)
+        cvedb.upsert(cve)
+    dump_cvedb(cvedb)
 
 
 def main():
     args = init_argparse().parse_args()
-    print(vars(args))
+    # print(vars(args))
 
-    if args.repo:  # first run, clone and create CVE from JSON files
-        repo = clone_repo()
-        if not repo.newly_clone:
+    if args.clone or args.update:
+        if args.clone and args.update:
+            raise Exception("Invalid arguments combination")
+        repo = CvelistHandler()
+        if args.clone:
+            handle_cve_json(repo, args=args)
+        elif args.update:
             updated = repo.find_updated_files()
-            print(len(updated))
             repo.pull_from_remote()
-            handle_cve_json(repo, pattern=None, files=updated)
-        else:
-            handle_cve_json(repo)
-        # handle_cve_json(repo)
+            handle_updated_cve(repo, files=updated, args=args)
     else:
-        # TODO: load local database pickle file
+        # TODO: search functions
         pass
 
 if __name__ == "__main__":
