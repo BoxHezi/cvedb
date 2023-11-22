@@ -47,7 +47,7 @@ def load_or_create_cvedb(db_path = CVEdb.OUTPUT_PICKLE_FILE):
         return CVEdb()
 
 
-def parse_year_or_id(args: argparse.Namespace) -> str:
+def pattern_from_year_or_id(args: argparse.Namespace) -> str:
     if args.year and args.id:
         raise Exception("Invalid arguments combination, year and id")
     if args.year:
@@ -105,9 +105,14 @@ def main():
 
     if args.clone or args.update:
         clone_or_update(args)
-    else:
+    elif args.search:
         # TODO: search functions
-        pass
+        cvedb = load_or_create_cvedb()
+        if args.year:
+            data = cvedb.get_cves_by_year(args.year)
+        elif args.id:
+            data = cvedb.get_cve_by_id(args.id)
+        return data
 
 
 if __name__ == "__main__":

@@ -91,10 +91,14 @@ class CVEdb:
         except:
             raise KeyError("Invalid year")
 
-    def search_by_id(self, cve_id):
+    def get_cve_by_id(self, cve_id) -> CVE:
         year = int(cve_id.split("-")[1])
         table = self.records[year]
-        return table.search_by_id(cve_id)
+        return table.get_by_id(cve_id)
+
+    def get_cves_by_year(self, year) -> dict:
+        table = self.records[int(year)]
+        return table.get_data()
 
 
 class Table:
@@ -108,10 +112,13 @@ class Table:
             self.data_count += 1
         self.data.update({data.get_cve_id(): data})
 
-    def search_by_id(self, cve_id):
+    def get_by_id(self, cve_id) -> CVE:
         if not cve_id in self.data:
             raise KeyError("CVE not found")
         return self.data[cve_id]
+
+    def get_data(self):
+        return self.data
 
 
 # def jsonlialize_cve(data) -> dict:
