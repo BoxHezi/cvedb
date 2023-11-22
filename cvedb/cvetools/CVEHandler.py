@@ -34,7 +34,7 @@ class CVE:
     def get_cve_id(self) -> str:
         return self.metadata.cveId
 
-    def get_year(self) -> int:
+    def get_cve_year(self) -> int:
         info = self.metadata.cveId.split("-")
         return int(info[1])
 

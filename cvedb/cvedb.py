@@ -1,41 +1,6 @@
-import json
-
 from .cvetools.CVEComponents import *
 from .cvetools.CVEHandler import *
-from .cvetools.CVEListHandler import CvelistHandler
 from . import pathutils
-
-# TODO: invoke create_metrics when required (cli argument)
-# TODO: test performance of tinydb
-
-# class CVEdb:
-#     DEFAULT_DB_FILE = pathutils.DEFAULT_PROJECT_DIR / "cvedb.json"
-
-#     def __init__(self, db_path = DEFAULT_DB_FILE):
-#         storeage_path = str(db_path)
-#         self.db = TinyDB(storeage_path, storage=CachingMiddleware(JSONStorage))
-#         self.table = None
-
-#     def set_table(self, table):
-#         self.table = self.db.table(table)
-
-#     def insert(self, cve: CVE):
-#         year = cve.get_year()
-#         if not self.table or self.table.name != year:
-#             self.set_table(year)
-#         self.table.insert(jsonlialize_cve(cve))
-
-#     def upsert(self, cve, condition):
-#         # TODO: 1. insert cve if condition is False
-#         # TODO: 2. update cve if condition is True
-#         pass
-
-#     def query_by_id(self, cve_id):
-#         # TODO: implement query logic
-#         pass
-
-#     def close(self):
-#         self.db.close()
 
 
 """
@@ -79,7 +44,7 @@ class CVEdb:
     #     print(f"Total Data Count: {self.total_data_count}")
 
     def upsert(self, data: CVE):
-        year = data.get_year()
+        year = data.get_cve_year()
         if year not in self.records:
             self.records[year] = Table(year)
         table = self.records[year]
@@ -130,14 +95,6 @@ class Table:
 #         except TypeError:
 #             out.update({k: jsonlialize_cve(v)})
 #     return out
-
-
-# def cvelistv5_test():
-#     cve_list = CvelistHandler()
-#     updated_file = cve_list.find_updated_files()
-#     print(updated_file)
-#     if len(updated_file) > 0:
-#         cve_list.pull_from_remote()
 
 
 __all__ = ["CVEdb"]

@@ -36,18 +36,33 @@ def dump_cvedb(cvedb: CVEdb, out_path: str = CVEdb.OUTPUT_PICKLE_FILE):
     pickleutils.pickle_dump(out_path, data)
 
 
-def load_or_create_cvedb(db_path = CVEdb.OUTPUT_PICKLE_FILE):
+def load_cvedb(db_path = CVEdb.OUTPUT_PICKLE_FILE) -> CVEdb:
+    cvedb = pickleutils.pickle_load(db_path)
+    cvedb = pickleutils.deserialize(pickleutils.decompress(cvedb))
+    return cvedb
+
+
+def create_cvedb() -> CVEdb:
+    return CVEdb()
+
+
+def init_cvedb(db_path = CVEdb.OUTPUT_PICKLE_FILE):
+    """
+    Initialize cve database. Load local pickle file; if no local database find, create a new CVEdb instance
+    """
     try:
         print(f"Loading cve database from {db_path}")
-        cvedb = pickleutils.pickle_load(db_path)
-        cvedb = pickleutils.deserialize(pickleutils.decompress(cvedb))
-        return cvedb
+        return load_cvedb(db_path)
     except:
         print(f"No local database found in path {db_path}, creating new CVEdb")
-        return CVEdb()
+        return create_cvedb()
 
 
 def pattern_from_year_or_id(args: argparse.Namespace) -> str:
+    """
+    Generate pattern from year or id given by CLI argument
+    If no year or id is provide, return the default pattern match for all CVE json files
+    """
     if args.year and args.id:
         raise Exception("Invalid arguments combination, year and id")
     if args.year:
@@ -68,7 +83,7 @@ def process_file(file, create_metrics: bool, cve_handler: CVEHandler) -> CVE:
 
 
 def handle_updated_cve(cvelist: CvelistHandler, files: list = [], args: argparse.Namespace = None):
-    cvedb = load_or_create_cvedb()
+    cvedb = init_cvedb()
     cve_handler = CVEHandler(cvelist.get_local_repo_path())
     for f in tqdm(files):
         path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
@@ -78,7 +93,7 @@ def handle_updated_cve(cvelist: CvelistHandler, files: list = [], args: argparse
 
 
 def handle_cve_json(cvelist: CvelistHandler, pattern: str = "**/CVE-*.json", args: argparse.Namespace = None):
-    cvedb = load_or_create_cvedb()
+    cvedb = init_cvedb()
     cve_handler = CVEHandler(cvelist.get_local_repo_path())
     for f in tqdm(cve_handler.get_cvelist_path().glob(pattern)):
     # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
@@ -99,6 +114,13 @@ def clone_or_update(args: argparse.Namespace):
         handle_updated_cve(repo, files=updated, args=args)
 
 
+def search(cvedb: CVEdb, year: int, id: str, pattern: str) -> dict | CVE:
+    if year:
+        return cvedb.get_cves_by_year(year)
+    elif id:
+        return cvedb.get_cve_by_id(id)
+
+
 def main():
     args = init_argparse().parse_args()
     # print(vars(args))
@@ -107,12 +129,14 @@ def main():
         clone_or_update(args)
     elif args.search:
         # TODO: search functions
-        cvedb = load_or_create_cvedb()
-        if args.year:
-            data = cvedb.get_cves_by_year(args.year)
-        elif args.id:
-            data = cvedb.get_cve_by_id(args.id)
+        cvedb = init_cvedb()
+        data = search(cvedb, args.year, args.id, None)
         return data
+        # for k, v in vars(record).items():
+        #     try:
+        #         print(k, vars(v))
+        #     except:
+        #         print(k, v)
 
 
 if __name__ == "__main__":
