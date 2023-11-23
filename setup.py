@@ -12,7 +12,7 @@ setup(
     packages=find_packages(),
     author="Box Hezi",
     author_email="hezipypi.yixdpu@bumpmail.io",
-    description="A CVE db in JSON format",
+    description="A simple CVE database written in Python",
     long_description=long_desc,
     long_description_content_type="text/markdown",
     url="https://github.com/BoxHezi/cvedb",
@@ -22,7 +22,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'cvedb = cvedb.main:main'
+            'cvedb = cvedb.cvedb:main'
         ]
     }
 )

@@ -8,3 +8,12 @@ A local CVE db repository
       1. If the CVE json file contains metrics entry, create Metrics for the CVE
       2. Otherwise, if `--create-metrics` argument is given, fetch metrics from NVD and create Metrics for the CVE
 3. store in local database (python pickle)
+
+
+### Load it as python package in project
+
+```python
+from cvedb import cvedb
+
+db = cvedb.load_db()
+```
