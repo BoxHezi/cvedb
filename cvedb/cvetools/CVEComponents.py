@@ -46,6 +46,9 @@ class Container:
         # vars(self)[container_type]["metrics"] = vars(metrics)
         vars(self)[container_type].update({"metrics": metrics})
 
+    def get_metrics(self, container_type):
+        return vars(self)[container_type]["metrics"]
+
     def get_container_type(self):
         if isinstance(self, CnaContainer):
             return "cna"

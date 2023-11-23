@@ -10,10 +10,11 @@ A local CVE db repository
 3. store in local database (python pickle)
 
 
-### Load it as python package in project
+### Use it in python project
 
 ```python
-from cvedb import cvedb
-
-db = cvedb.load_db()
+>>> from cvedb import cvedb
+>>>
+>>> db = cvedb.load_db()
+>>> type(db) # <class 'cvedb.cvedb.CVEdb'>
 ```
