@@ -29,6 +29,10 @@ example format can be described as:
 }
 """
 
+
+DEFAULT_PATTERN = "**/CVE-*.json"
+
+
 class CVEdb:
     OUTPUT_PICKLE_FILE = pathutils.DEFAULT_PROJECT_DIR / "cvedb.pickle"
 
@@ -37,6 +41,7 @@ class CVEdb:
         self.total_data_count = 0
         self.records: dict[int, Table] = {} # key-value pair, where key is table name, value is table
 
+    # TODO: add implementation to track total_data_count
     # def update_stat(self):
     #     self.table_count = len(self.records.keys())
     #     count = 0
@@ -119,6 +124,9 @@ def load_db(db_path = CVEdb.OUTPUT_PICKLE_FILE) -> CVEdb:
 
 
 def create_db() -> CVEdb:
+    """
+    create new CVEdb instance
+    """
     return CVEdb()
 
 
@@ -154,7 +162,7 @@ def handle_updated_cve(cvelist: CvelistHandler, files: list = [], args = None):
     dump_db(cvedb)
 
 
-def handle_cve_json(cvelist: CvelistHandler, pattern: str = "**/CVE-*.json", args = None):
+def handle_cve_json(cvelist: CvelistHandler, pattern: str = DEFAULT_PATTERN, args = None):
     cvedb = init_cvedb()
     cve_handler = CVEHandler(cvelist.get_local_repo_path())
     for f in tqdm(cve_handler.get_cvelist_path().glob(pattern)):
@@ -177,6 +185,7 @@ def clone_or_update(args):
 
 
 def search(cvedb: CVEdb, year: int, id: str, pattern: str) -> dict | CVE:
+    # TODO: add pattern match for searching logic
     if year:
         return cvedb.get_cves_by_year(year)
     elif id:
