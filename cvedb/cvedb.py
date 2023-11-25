@@ -8,6 +8,7 @@ from .cvedb import *
 from .utils import pickleutils
 from .utils import pathutils
 from .utils import argsutils
+from .utils import regexutils
 
 from .version import __version__
 
@@ -145,10 +146,11 @@ def init_cvedb(db_path = CVEdb.OUTPUT_PICKLE_FILE):
 def process_file(file, create_metrics: bool, cve_handler: CVEHandler) -> CVE:
     cve = cve_handler.create_cve_from_json(file)
     if cve.contains_metrics():
-        cve.create_metrics(True)
+        cve.create_metrics(True)  # create Metrics if CVE JSON file contains metrics entry
     else:
-        if create_metrics:
-            cve.create_metrics(False)
+        create_metrics and cve.create_metrics(False)
+        # if create_metrics:
+        #     cve.create_metrics(False)
     return cve
 
 
