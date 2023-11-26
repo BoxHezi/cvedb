@@ -87,12 +87,13 @@ class AdpContainer(Container):
 '''
 Metrics
 '''
-class Metrics:
+class Metrics(dict):
     def __init__(self, from_nvd: bool = False, **kwargs):
         if not from_nvd:
             self.process_metrics_from_json(**kwargs)
         else:
             self.process_metrics_from_nvd(**kwargs)
+        dict.__init__(self, vars(self))
 
     def process_metrics_from_json(self, **kwargs):
         if "cvssV3_1" in kwargs:

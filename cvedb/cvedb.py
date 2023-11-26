@@ -1,3 +1,4 @@
+import json
 from tqdm import tqdm
 
 from .cvetools.CVEComponents import *
@@ -100,15 +101,15 @@ class Table:
         return self.data
 
 
-# def jsonlialize_cve(data) -> dict:
-#     out = {}
-#     for k, v in vars(data).items():
-#         try:
-#             json.dumps(v)  # check if the value is json serializable
-#             out.update({k: v})
-#         except TypeError:
-#             out.update({k: jsonlialize_cve(v)})
-#     return out
+def jsonlialize_cve(data) -> dict:
+    out = {}
+    for k, v in vars(data).items():
+        try:
+            json.dumps(v)  # check if the value is json serializable
+            out.update({k: v})
+        except TypeError:
+            out.update({k: jsonlialize_cve(v)})
+    return out
 
 
 def dump_db(cvedb: CVEdb, out_path: str = CVEdb.OUTPUT_PICKLE_FILE):
@@ -205,6 +206,7 @@ def main():
         # TODO: search functions
         cvedb = init_cvedb()
         data = search(cvedb, args.year, args.id, None)
+        # print(json.dumps(jsonlialize_cve(data), indent=2))
         return data
         # for k, v in vars(record).items():
         #     try:
