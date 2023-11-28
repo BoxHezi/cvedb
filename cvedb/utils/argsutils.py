@@ -20,7 +20,7 @@ def init_argparse() -> argparse.ArgumentParser:
     return arg
 
 
-def pattern_from_year_or_id(args: argparse.Namespace) -> str:
+def process_year_or_id(args: argparse.Namespace) -> str:
     """
     Generate pattern from year or id given by CLI argument
     If no year or id is provide, return the default pattern match for all CVE json files

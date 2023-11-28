@@ -44,19 +44,22 @@ class CVEdb:
         self.records: dict[int, Table] = {} # key-value pair, where key is table name, value is table
 
     # TODO: add implementation to track total_data_count
-    # def update_stat(self):
-    #     self.table_count = len(self.records.keys())
-    #     count = 0
-    #     for _, v in self.records.items():
-    #         count += v.data_count
-    #     self.total_data_count = count
+    def update_stat(self):
+        """
+        Updates the statistics of the CVEdb object.
 
-    # def stat(self):
-    #     for k, v in self.records.items():
-    #         print(f"{k}: {v.data_count}")
+        This function calculates and updates the number of tables (or records) and the total data count across all tables.
+        The `table_count` is the number of keys in the `records` dictionary.
+        The `total_data_count` is calculated by iterating over all tables in `records` and summing up their `data_count` values.
 
-    #     print(f"Table Count: {self.table_count}")
-    #     print(f"Total Data Count: {self.total_data_count}")
+        :return: A tuple containing the table count and the total data count.
+        """
+        self.table_count = len(self.records.keys())
+        count = 0
+        for _, v in self.records.items():
+            count += v.data_count
+        self.total_data_count = count
+        return self.table_count, self.total_data_count
 
     def upsert(self, data: CVE):
         year = data.get_cve_year()
@@ -76,9 +79,15 @@ class CVEdb:
         table = self.records[year]
         return table.get_by_id(cve_id)
 
-    def get_cves_by_year(self, year) -> dict:
+    def get_cves_by_year(self, year):
         table = self.records[int(year)]
-        return table.get_data()
+        # return table.get_data()  # return dict
+        return table  # return Table instance
+
+    def __str__(self) -> str:
+        self.update_stat()
+        return f"Table Count: {self.table_count}\nTotal Data Count: {self.total_data_count}"
+
 
 
 class Table:
@@ -113,15 +122,28 @@ def jsonlialize_cve(data) -> dict:
 
 
 def dump_db(cvedb: CVEdb, out_path: str = CVEdb.OUTPUT_PICKLE_FILE):
+    """
+    Serialize and store the `cvedb` object into a file.
+
+    :param cvedb: The CVEdb object to be stored.
+    :param out_path: The path where the serialized object will be stored. Defaults to CVEdb.OUTPUT_PICKLE_FILE.
+    """
     print(f"Store cvedb to {out_path}")
     data = pickleutils.compress(pickleutils.serialize(cvedb))
     pickleutils.pickle_dump(out_path, data)
 
 
 def load_db(db_path = CVEdb.OUTPUT_PICKLE_FILE) -> CVEdb:
+    """
+    Load a `CVEdb` object from a file.
+
+    :param db_path: The path where the serialized object is stored. Defaults to CVEdb.OUTPUT_PICKLE_FILE.
+    :return: The deserialized CVEdb object.
+    """
     cvedb = pickleutils.pickle_load(db_path)
     cvedb = pickleutils.deserialize(pickleutils.decompress(cvedb))
-    print(type(cvedb))
+    # print(type(cvedb))
+    # print(cvedb)
     return cvedb
 
 
@@ -207,6 +229,7 @@ def main():
         cvedb = init_cvedb()
         data = search(cvedb, args.year, args.id, None)
         # print(json.dumps(jsonlialize_cve(data), indent=2))
+        # print(type(data))
         return data
         # for k, v in vars(record).items():
         #     try:
