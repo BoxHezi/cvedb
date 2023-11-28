@@ -94,9 +94,9 @@ class CVEdb:
         table = self.records[int(year)]
         out = {"table_name": table.table_name, "data_count": 0, "data": {}}
         for k, v in table.data.items():  # k: str, cveid; v: CVE instance
-            cve_str = jsonlialize_cve(v)
-            if re.match(pattern, str(cve_str)):
-                out["data"].update({k: cve_str})
+            cve_json = jsonlialize_cve(v)
+            if re.match(pattern, str(cve_json)):
+                out["data"].update({k: cve_json})
                 out["data_count"] = out["data_count"] + 1
 
         out_table = Table(out["table_name"], out["data_count"], out["data"])  # create a new Table instance

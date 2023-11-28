@@ -1,6 +1,6 @@
 import json
 
-from .. import pathutils
+from ..utils import pathutils
 from .CVEComponents import *
 from ..nvdapi import CVEQuery
 

@@ -1,6 +1,6 @@
 import git
 
-from .. import pathutils
+from ..utils import pathutils
 
 # CVE List V5 Github Repo: https://github.com/CVEProject/cvelistV5
 CVE_LIST_V5_REPO = "git@github.com:CVEProject/cvelistV5.git"
