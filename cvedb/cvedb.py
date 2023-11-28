@@ -1,3 +1,4 @@
+import re
 import json
 from tqdm import tqdm
 
@@ -79,22 +80,38 @@ class CVEdb:
         table = self.records[year]
         return table.get_by_id(cve_id)
 
-    def get_cves_by_year(self, year):
+    def get_cves_by_year(self, year, pattern = None):
+        """
+        Retrieves all CVEs for a given year that match a certain pattern and returns them in a new Table instance.
+
+        :param year: The year to select the table of CVEs.
+        :param pattern: The pattern to filter the CVEs. This is optional.
+        :return: A new Table instance containing the CVEs for the given year that match the pattern.
+        """
+        if pattern:
+            pattern = argsutils.process_pattern(pattern)  # convert cli pattern to regex
+        # print(f"Pattern: {pattern}")
         table = self.records[int(year)]
-        # return table.get_data()  # return dict
-        return table  # return Table instance
+        out = {"table_name": table.table_name, "data_count": 0, "data": {}}
+        for k, v in table.data.items():  # k: str, cveid; v: CVE instance
+            cve_str = jsonlialize_cve(v)
+            if re.match(pattern, str(cve_str)):
+                out["data"].update({k: cve_str})
+                out["data_count"] = out["data_count"] + 1
+
+        out_table = Table(out["table_name"], out["data_count"], out["data"])  # create a new Table instance
+        return out_table
 
     def __str__(self) -> str:
         self.update_stat()
         return f"Table Count: {self.table_count}\nTotal Data Count: {self.total_data_count}"
 
 
-
 class Table:
-    def __init__(self, table_name):
+    def __init__(self, table_name, data_count = 0, data = {}):
         self.table_name = table_name
-        self.data_count = 0
-        self.data = {}
+        self.data_count = data_count
+        self.data = data
 
     def upsert(self, data: CVE):
         if not data.get_cve_id() in self.data:
@@ -108,6 +125,9 @@ class Table:
 
     def get_data(self):
         return self.data
+
+    def __str__(self):
+        return f"Table: {self.table_name}\nData Count: {self.data_count}"
 
 
 def jsonlialize_cve(data) -> dict:
@@ -210,9 +230,8 @@ def clone_or_update(args):
 
 
 def search(cvedb: CVEdb, year: int, id: str, pattern: str) -> dict | CVE:
-    # TODO: add pattern match for searching logic
     if year:
-        return cvedb.get_cves_by_year(year)
+        return cvedb.get_cves_by_year(year, pattern)
     elif id:
         return cvedb.get_cve_by_id(id)
 
@@ -225,9 +244,8 @@ def main():
     elif args.clone or args.update:
         clone_or_update(args)
     elif args.search:
-        # TODO: search functions
         cvedb = init_cvedb()
-        data = search(cvedb, args.year, args.id, None)
+        data = search(cvedb, args.year, args.id, args.pattern)
         # print(json.dumps(jsonlialize_cve(data), indent=2))
         # print(type(data))
         return data
