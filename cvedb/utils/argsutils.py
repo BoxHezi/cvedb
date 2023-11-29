@@ -13,10 +13,12 @@ def init_argparse() -> argparse.ArgumentParser:
     search_group = arg.add_argument_group("Search CVE Arguments")
     search_group.add_argument("-s", "--search", help="Search CVE(s) in local database\n", action="store_true")
     search_group.add_argument("-o", "--out", help="Specify output path, JSON format supported.")
-    search_group.add_argument("-p", "--pattern", help="Specific search pattern to search from local database") # TODO: add this for regex match
+    search_group.add_argument("-p", "--pattern", help="Specific search pattern to search from local database")
+    search_group.add_argument("-y", "--year", help="Specify the year for searching CVEs\n"
+                              "This will return a Table instance")
+    search_group.add_argument("-i", "--id", help="Specify CVE id to search for\n"
+                              "This will return a CVE instance")
 
-    arg.add_argument("-y", "--year", help="Specify the year for querying/searching CVEs")
-    arg.add_argument("-i", "--id", help="Specify CVE id to search for")
     arg.add_argument("-v", "--version", help="Print version", action="store_true")
     return arg
 

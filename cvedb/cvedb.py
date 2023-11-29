@@ -168,7 +168,7 @@ def init_db(db_path = CVEdb.OUTPUT_PICKLE_FILE):
         return CVEdb()
 
 
-def process_file(file, create_metrics: bool, cve_handler: CVEHandler) -> CVE:
+def process_file(file, cve_handler: CVEHandler, create_metrics: bool) -> CVE:
     cve = cve_handler.create_cve_from_json(file)
     if cve.contains_metrics():
         cve.create_metrics(True)  # create Metrics if CVE JSON file contains metrics entry
@@ -177,36 +177,34 @@ def process_file(file, create_metrics: bool, cve_handler: CVEHandler) -> CVE:
     return cve
 
 
-def handle_updated_cve(cvelist: CvelistHandler, files: list = [], args = None):
-    cvedb = init_db()
-    cve_handler = CVEHandler(cvelist.get_local_repo_path())
+def handle_updated_cve(cvedb: CVEdb, local_repo_path: str, files: list, args = None):
+    cve_handler = CVEHandler(local_repo_path)
     for f in tqdm(files):
         path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
-        cve = process_file(path, args.create_metrics, cve_handler)
+        cve = process_file(path, cve_handler, args.create_metrics)
         cvedb.upsert(cve)
-    dump_db(cvedb)
 
 
-def handle_cve_json(cvelist: CvelistHandler, pattern: str = DEFAULT_PATTERN, args = None):
-    cvedb = init_db()
-    cve_handler = CVEHandler(cvelist.get_local_repo_path())
+def handle_cve_json(cvedb: CVEdb, local_repo_path: str, pattern: str = DEFAULT_PATTERN, args = None):
+    cve_handler = CVEHandler(local_repo_path)
     for f in tqdm(cve_handler.get_cvelist_path().glob(pattern)):
     # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
-        cve = process_file(f, args.create_metrics, cve_handler)
+        cve = process_file(f, cve_handler, args.create_metrics)
         cvedb.upsert(cve)
-    dump_db(cvedb)
 
 
 def clone_or_update(args):
     if args.clone and args.update:
         raise Exception("Invalid arguments combination")
     repo = CvelistHandler()
+    cvedb = init_db()
     if args.clone:
-        handle_cve_json(repo, args=args)
+        handle_cve_json(cvedb, repo.get_local_repo_path(), args=args)
     elif args.update:
         updated = repo.find_updated_files()
         repo.pull_from_remote()
-        handle_updated_cve(repo, files=updated, args=args)
+        handle_updated_cve(cvedb, repo.get_local_repo_path(), files=updated, args=args)
+    dump_db(cvedb)
 
 
 def search(cvedb: CVEdb, year: int, id: str, pattern: str) -> dict | CVE:

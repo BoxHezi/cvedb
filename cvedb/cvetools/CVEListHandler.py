@@ -18,6 +18,9 @@ class CloneProgress(git.RemoteProgress):
 
 
 class CvelistHandler:
+    """
+    Class to handle cvelistV5 repo
+    """
     def __init__(self):
         pathutils.create_path(pathutils.DEFAULT_PROJECT_DIR)
         self.local_repo_path = pathutils.DEFAULT_PROJECT_DIR / "cvelistV5"
