@@ -21,10 +21,14 @@ table_name is the year of individual CVE
 example format can be described as:
 {
     '2023': {
+        'table_name': "2023",
+        'data_count': 2
         'CVE-2023-0001': {},
         'CVE-2023-0002': {}
     },
     '2022': {
+        'table_name': "2022",
+        'data_count': 2
         'CVE-2022-0001': {},
         'CVE-2022-0002': {}
     }
@@ -64,15 +68,9 @@ class CVEdb:
     def upsert(self, data: CVE):
         year = data.get_cve_year()
         if year not in self.records:
-            self.records[year] = Table(year)
+            self.records[year] = Table(year, 0, {})
         table = self.records[year]
         table.upsert(data)
-
-    def retrieve_records_by_year(self, year: int):
-        try:
-            return self.records[int(year)]
-        except:
-            raise KeyError("Invalid year")
 
     def get_cve_by_id(self, cve_id) -> CVE:
         year = int(cve_id.split("-")[1])
@@ -87,8 +85,7 @@ class CVEdb:
         :param pattern: The pattern to filter the CVEs. This is optional.
         :return: A new Table instance containing the CVEs for the given year that match the pattern.
         """
-        if pattern:
-            pattern = argsutils.process_pattern(pattern)  # convert cli pattern to regex
+        pattern = argsutils.process_pattern(pattern) if pattern else r"()" # convert cli pattern to regex
         # print(f"Pattern: {pattern}")
         table = self.records[int(year)]
         out = {"table_name": table.table_name, "data_count": 0, "data": {}}
@@ -99,6 +96,7 @@ class CVEdb:
                 out["data_count"] = out["data_count"] + 1
 
         out_table = Table(out["table_name"], out["data_count"], out["data"])  # create a new Table instance
+        # print(out_table)
         return out_table
 
     def __str__(self) -> str:
@@ -107,10 +105,10 @@ class CVEdb:
 
 
 class Table:
-    def __init__(self, table_name, data_count = 0, data = {}):
+    def __init__(self, table_name, data_count: int, data: dict[str, CVE]):
         self.table_name = table_name
         self.data_count = data_count
-        self.data = data
+        self.data: dict[str, CVE] = data
 
     def upsert(self, data: CVE):
         if not data.get_cve_id() in self.data:
@@ -248,11 +246,6 @@ def main():
         # print(json.dumps(jsonlialize_cve(data), indent=2))
         # print(type(data))
         return data
-        # for k, v in vars(record).items():
-        #     try:
-        #         print(k, vars(v))
-        #     except:
-        #         print(k, v)
 
 
 if __name__ == "__main__":

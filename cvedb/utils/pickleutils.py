@@ -1,13 +1,17 @@
-import zlib
+# import zlib
 import pickle
+
+import pgzip
 
 
 def compress(data: bytes):
-    return zlib.compress(data)
+    # return zlib.compress(data)
+    return pgzip.compress(data)
 
 
 def decompress(data: bytes):
-    return zlib.decompress(data)
+    # return zlib.decompress(data)
+    return pgzip.decompress(data)
 
 
 def serialize(obj: object):

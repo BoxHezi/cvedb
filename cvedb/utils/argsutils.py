@@ -6,8 +6,9 @@ def init_argparse() -> argparse.ArgumentParser:
     db_group = arg.add_argument_group("CVE Database Arguments")
     db_group.add_argument("--clone", help="Clone Github cvelistV5 repo", action="store_true")
     db_group.add_argument("--update", help="Check if there is any update from remote repo", action="store_true")
-    db_group.add_argument("--create-metrics", help="Ensure that metrics will be created\n"
-                     "If there is no metrics in JSON file, query metrics information from NVD", action="store_true")
+    db_group.add_argument("--create-metrics", help="Create Metrics for CVEs no matter JSON contains metrics entry\n"
+                     "If there is no metrics in JSON file, query metrics information from NVD\n"
+                     "This can lead to long run of the program, since most JSON doesn't contain metrics entry", action="store_true")
 
     search_group = arg.add_argument_group("Search CVE Arguments")
     search_group.add_argument("-s", "--search", help="Search CVE(s) in local database\n", action="store_true")
@@ -51,6 +52,7 @@ def process_pattern(pattern: str):
 
     This will return a regex that matches any string that contains "apple" and does not contain "orange".
     """
+    # if pattern:
     pattern_list = pattern.split(" ")
     positive_match = [p for p in pattern_list if not p.startswith("-")]
     negative_match = [p[1:] for p in pattern_list if p.startswith("-")]
@@ -59,4 +61,5 @@ def process_pattern(pattern: str):
     neg_regex = f"(^((?!{'|'.join(negative_match)}).)*$)" if negative_match else ""
 
     return pos_regex + neg_regex
+    # return r"()"
 
