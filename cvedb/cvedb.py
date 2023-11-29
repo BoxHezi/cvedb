@@ -10,7 +10,6 @@ from .cvedb import *
 from .utils import pickleutils
 from .utils import pathutils
 from .utils import argsutils
-from .utils import regexutils
 
 from .version import __version__
 
@@ -174,7 +173,7 @@ def create_db() -> CVEdb:
     return CVEdb()
 
 
-def init_cvedb(db_path = CVEdb.OUTPUT_PICKLE_FILE):
+def init_db(db_path = CVEdb.OUTPUT_PICKLE_FILE):
     """
     Initialize cve database. Load local pickle file; if no local database find, create a new CVEdb instance
     """
@@ -198,7 +197,7 @@ def process_file(file, create_metrics: bool, cve_handler: CVEHandler) -> CVE:
 
 
 def handle_updated_cve(cvelist: CvelistHandler, files: list = [], args = None):
-    cvedb = init_cvedb()
+    cvedb = init_db()
     cve_handler = CVEHandler(cvelist.get_local_repo_path())
     for f in tqdm(files):
         path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
@@ -208,7 +207,7 @@ def handle_updated_cve(cvelist: CvelistHandler, files: list = [], args = None):
 
 
 def handle_cve_json(cvelist: CvelistHandler, pattern: str = DEFAULT_PATTERN, args = None):
-    cvedb = init_cvedb()
+    cvedb = init_db()
     cve_handler = CVEHandler(cvelist.get_local_repo_path())
     for f in tqdm(cve_handler.get_cvelist_path().glob(pattern)):
     # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
@@ -244,7 +243,7 @@ def main():
     elif args.clone or args.update:
         clone_or_update(args)
     elif args.search:
-        cvedb = init_cvedb()
+        cvedb = init_db()
         data = search(cvedb, args.year, args.id, args.pattern)
         # print(json.dumps(jsonlialize_cve(data), indent=2))
         # print(type(data))
@@ -257,13 +256,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # cvelistv5_test()
-    # cvehandler_test()
-    # args = init_argparse().parse_args()
-    # print(vars(args))
-
-    # load from pickle test
-    # cvedb = load_or_create_cvedb()
     main()
 
 

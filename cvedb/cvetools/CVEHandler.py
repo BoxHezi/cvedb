@@ -6,7 +6,7 @@ from ..nvdapi import CVEQuery
 
 
 class CVE:
-    def __init__(self, metadata, containers, data_type = "CVE Record", data_version = "5.0", **kwargs) -> None:
+    def __init__(self, metadata, containers, data_type = "CVE Record", data_version = "5.0"):
         self.data_type = data_type
         self.data_version = data_version
         self.metadata = metadata
@@ -37,6 +37,26 @@ class CVE:
     def get_cve_year(self) -> int:
         info = self.metadata.cveId.split("-")
         return int(info[1])
+
+    def get_metrics(self) -> Metrics:
+        """
+        Retrieves the metrics associated with the container of a specific type.
+
+        :return: The metrics of the container if they exist, otherwise None.
+        """
+        containers = vars(self.containers)[self.containers.get_container_type()]
+        if "metrics" in containers:
+            return containers["metrics"]
+        return None  # when no metrics entry found
+
+    def get_cvss_score(self) -> float | None:
+        """
+        Retrieves the CVSS base score from the metrics of the container.
+
+        :return: The CVSS base score if metrics exist, otherwise None.
+        """
+        metrics = self.get_metrics()
+        return float(metrics["baseScore"]) if metrics else None
 
 
 class CVEHandler:

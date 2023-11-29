@@ -15,6 +15,6 @@ A local CVE db repository
 ```python
 >>> from cvedb import cvedb
 >>>
->>> db = cvedb.load_db()
->>> type(db) # <class 'cvedb.cvedb.CVEdb'>
+>>> cvedb = cvedb.init_db()
+>>> type(cvedb) # <class 'cvedb.cvedb.CVEdb'>
 ```
