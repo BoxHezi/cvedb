@@ -47,7 +47,6 @@ class CVEdb:
         self.total_data_count = 0
         self.records: dict[int, Table] = {} # key-value pair, where key is table name, value is table
 
-    # TODO: add implementation to track total_data_count
     def update_stat(self):
         """
         Updates the statistics of the CVEdb object.
@@ -96,7 +95,6 @@ class CVEdb:
                 out["data_count"] = out["data_count"] + 1
 
         out_table = Table(out["table_name"], out["data_count"], out["data"])  # create a new Table instance
-        # print(out_table)
         return out_table
 
     def __str__(self) -> str:
@@ -150,37 +148,24 @@ def dump_db(cvedb: CVEdb, out_path: str = CVEdb.OUTPUT_PICKLE_FILE):
     pickleutils.pickle_dump(out_path, data)
 
 
-def load_db(db_path = CVEdb.OUTPUT_PICKLE_FILE) -> CVEdb:
-    """
-    Load a `CVEdb` object from a file.
-
-    :param db_path: The path where the serialized object is stored. Defaults to CVEdb.OUTPUT_PICKLE_FILE.
-    :return: The deserialized CVEdb object.
-    """
-    cvedb = pickleutils.pickle_load(db_path)
-    cvedb = pickleutils.deserialize(pickleutils.decompress(cvedb))
-    # print(type(cvedb))
-    # print(cvedb)
-    return cvedb
-
-
-def create_db() -> CVEdb:
-    """
-    create new CVEdb instance
-    """
-    return CVEdb()
-
-
 def init_db(db_path = CVEdb.OUTPUT_PICKLE_FILE):
     """
-    Initialize cve database. Load local pickle file; if no local database find, create a new CVEdb instance
+    Initialize a CVE (Common Vulnerabilities and Exposures) database.
+
+    This function tries to load a CVEdb object from a local pickle file. If it cannot find the file or if there is an error during loading, it creates a new CVEdb instance.
+
+    :param db_path: The path where the serialized object is stored. Defaults to CVEdb.OUTPUT_PICKLE_FILE.
+    :return: The deserialized CVEdb object or a new CVEdb instance if the file does not exist or there is an error during loading.
+    :raises Exception: If there is an error during loading, decompression, or deserialization.
     """
     try:
         print(f"Loading cve database from {db_path}")
-        return load_db(db_path)
+        cvedb = pickleutils.pickle_load(db_path)
+        cvedb = pickleutils.deserialize(pickleutils.decompress(cvedb))
+        return cvedb
     except:
         print(f"No local database found in path {db_path}, creating new CVEdb")
-        return create_db()
+        return CVEdb()
 
 
 def process_file(file, create_metrics: bool, cve_handler: CVEHandler) -> CVE:
@@ -189,8 +174,6 @@ def process_file(file, create_metrics: bool, cve_handler: CVEHandler) -> CVE:
         cve.create_metrics(True)  # create Metrics if CVE JSON file contains metrics entry
     else:
         create_metrics and cve.create_metrics(False)
-        # if create_metrics:
-        #     cve.create_metrics(False)
     return cve
 
 

@@ -18,7 +18,8 @@ setup(
     url="https://github.com/BoxHezi/cvedb",
     install_requires=[
         "nvdlib",
-        "tqdm"
+        "tqdm",
+        "pgzip"
     ],
     entry_points={
         'console_scripts': [
