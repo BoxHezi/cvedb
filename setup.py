@@ -19,7 +19,8 @@ setup(
     install_requires=[
         "nvdlib",
         "tqdm",
-        "pgzip"
+        "pgzip",
+        "GitPython"
     ],
     entry_points={
         'console_scripts': [
