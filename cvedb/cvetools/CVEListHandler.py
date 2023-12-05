@@ -17,7 +17,7 @@ class CloneProgress(git.RemoteProgress):
         print(self._cur_line, end="\r")
 
 
-class CvelistHandler:
+class CVEListHandler:
     """
     Class to handle cvelistV5 repo
     """
@@ -54,4 +54,4 @@ class CvelistHandler:
         return str(self.local_repo_path)
 
 
-__all__ = ["CvelistHandler"]
+__all__ = ["CVEListHandler"]

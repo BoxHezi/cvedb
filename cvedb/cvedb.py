@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from .cvetools.CVEComponents import *
 from .cvetools.CVEHandler import *
-from .cvetools.CVEListHandler import CvelistHandler
+from .cvetools.CVEListHandler import CVEListHandler
 
 from .cvedb import *
 from .utils import pickleutils
@@ -41,11 +41,22 @@ DEFAULT_PATTERN = "**/CVE-*.json"
 
 class CVEdb:
     OUTPUT_PICKLE_FILE = pathutils.DEFAULT_PROJECT_DIR / "cvedb.pickle"
+    CVE_LIST_HANDLER = CVEListHandler()  # cvelistV5 repo handler
+    CVE_HANDLER = CVEHandler(CVE_LIST_HANDLER.get_local_repo_path())  # handler for CVE instance
 
     def __init__(self):
         self.table_count = 0
         self.total_data_count = 0
         self.records: dict[int, Table] = {} # key-value pair, where key is table name, value is table
+
+    def create_cve_from_file(self, file_path: str, cve_handler: CVEHandler = CVE_HANDLER, create_metrics: bool = False):
+        cve = cve_handler.create_cve_from_json(file_path)
+        if cve.contains_metrics():
+            cve.create_metrics(True)
+        else:
+            create_metrics and cve.create_metrics(False)
+        self.upsert(cve)
+        return cve
 
     def update_stat(self):
         """
@@ -168,42 +179,29 @@ def init_db(db_path = CVEdb.OUTPUT_PICKLE_FILE):
         return CVEdb()
 
 
-def process_file(file, cve_handler: CVEHandler, create_metrics: bool) -> CVE:
-    cve = cve_handler.create_cve_from_json(file)
-    if cve.contains_metrics():
-        cve.create_metrics(True)  # create Metrics if CVE JSON file contains metrics entry
-    else:
-        create_metrics and cve.create_metrics(False)
-    return cve
-
-
-def handle_updated_cve(cvedb: CVEdb, local_repo_path: str, files: list, args = None):
-    cve_handler = CVEHandler(local_repo_path)
+def handle_updated_cve(cvedb: CVEdb, files: list, args = None):
     for f in tqdm(files):
         path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
-        cve = process_file(path, cve_handler, args.create_metrics)
-        cvedb.upsert(cve)
+        cvedb.create_cve_from_file(path, create_metrics=args.create_metrics)
 
 
-def handle_cve_json(cvedb: CVEdb, local_repo_path: str, pattern: str = DEFAULT_PATTERN, args = None):
-    cve_handler = CVEHandler(local_repo_path)
-    for f in tqdm(cve_handler.get_cvelist_path().glob(pattern)):
+def handle_cve_json(cvedb: CVEdb, pattern: str = DEFAULT_PATTERN, args = None):
+    for f in tqdm(cvedb.CVE_HANDLER.get_cvelist_path().glob(pattern)):
     # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
-        cve = process_file(f, cve_handler, args.create_metrics)
-        cvedb.upsert(cve)
+        cvedb.create_cve_from_file(f, create_metrics=args.create_metrics)
 
 
 def clone_or_update(args):
     if args.clone and args.update:
         raise Exception("Invalid arguments combination")
-    repo = CvelistHandler()
     cvedb = init_db()
     if args.clone:
-        handle_cve_json(cvedb, repo.get_local_repo_path(), args=args)
+        handle_cve_json(cvedb, args=args)
     elif args.update:
+        repo = CVEListHandler()
         updated = repo.find_updated_files()
         repo.pull_from_remote()
-        handle_updated_cve(cvedb, repo.get_local_repo_path(), files=updated, args=args)
+        handle_updated_cve(cvedb, files=updated, args=args)
     dump_db(cvedb)
 
 
