@@ -4,3 +4,5 @@ cvelistV5/
 dist/
 *.egg-info/
 build/
+
+.idea/

@@ -1,9 +1,8 @@
-'''
-Class definiations are defined based on the CVE JSON V5 Schema: https://github.com/CVEProject/cve-schema/blob/master/schema/v5.0/CVE_JSON_5.0_schema.json
+"""Class definiations are defined based on the CVE JSON V5 Schema:
+https://github.com/CVEProject/cve-schema/blob/master/schema/v5.0/CVE_JSON_5.0_schema.json
 
 CVE List V5 Github Repo: https://github.com/CVEProject/cvelistV5
-'''
-
+"""
 
 '''
 CVE Metadata, contains two types:
@@ -42,20 +41,18 @@ class Container:
         return str(vars(self))
 
     def add_metrics(self, container_type, metrics: "Metrics"):
-        # vars(self)[container_type].update({"metrics": vars(metrics)})
-        # vars(self)[container_type]["metrics"] = vars(metrics)
         vars(self)[container_type].update({"metrics": metrics})
 
     def get_metrics(self, container_type):
         return vars(self)[container_type]["metrics"]
 
-    def get_container_type(self):
+    def get_container_type(self) -> str | None:
         if isinstance(self, CnaContainer):
             return "cna"
         elif isinstance(self, AdpContainer):
             return "adp"
         else:
-            None
+            return None
 
 
 class CnaContainer(Container):
@@ -122,5 +119,5 @@ class Metrics(dict):
         return str(vars(self))
 
 
-
-__all__ = ["CveMetadataPublished", "CveMetadataRejected", "CnaPublishedContainer", "CnaRejectedContainer", "AdpContainer", "Metrics"]
+__all__ = ["CveMetadataPublished", "CveMetadataRejected", "CnaPublishedContainer", "CnaRejectedContainer",
+           "AdpContainer", "Metrics"]

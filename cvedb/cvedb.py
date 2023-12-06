@@ -2,11 +2,9 @@ import re
 import json
 from tqdm import tqdm
 
-from .cvetools.CVEComponents import *
 from .cvetools.CVEHandler import *
 from .cvetools.CVEListHandler import CVEListHandler
 
-from .cvedb import *
 from .utils import pickleutils
 from .utils import pathutils
 from .utils import argsutils
@@ -35,7 +33,6 @@ example format can be described as:
 }
 """
 
-
 DEFAULT_PATTERN = "**/CVE-*.json"
 
 
@@ -47,9 +44,10 @@ class CVEdb:
     def __init__(self):
         self.table_count = 0
         self.total_data_count = 0
-        self.records: dict[int, Table] = {} # key-value pair, where key is table name, value is table
+        self.records: dict[int, Table] = {}  # key-value pair, where key is table name, value is table
 
-    def create_cve_from_file(self, file_path: str, cve_handler: CVEHandler = CVE_HANDLER, create_metrics: bool = False) -> CVE:
+    def create_cve_from_file(self, file_path: str, cve_handler: CVEHandler = CVE_HANDLER,
+                             create_metrics: bool = False) -> CVE:
         """
         Creates a CVE instance from a JSON file and adds it to the database.
 
@@ -109,7 +107,7 @@ class CVEdb:
             handle_cve_json(self, f"**/{cve_id}.json", None)
             return table.get_by_id(cve_id)
 
-    def get_cves_by_year(self, year, pattern = None):
+    def get_cves_by_year(self, year, pattern=None):
         """
         Retrieves all CVEs for a given year that match a certain pattern.
 
@@ -117,7 +115,7 @@ class CVEdb:
         :param pattern: The pattern to filter the CVEs. This is optional.
         :return: A new Table instance containing the CVEs for the given year that match the pattern.
         """
-        pattern = argsutils.process_pattern(pattern) if pattern else r"()" # convert cli pattern to regex
+        pattern = argsutils.process_pattern(pattern) if pattern else r"()"  # convert cli pattern to regex
         # print(f"Pattern: {pattern}")
         table = self.records[int(year)]
         out = {"table_name": table.table_name, "data_count": 0, "data": {}}
@@ -197,7 +195,7 @@ def dump_db(cvedb: CVEdb, out_path: str = CVEdb.OUTPUT_PICKLE_FILE):
     pickleutils.pickle_dump(out_path, data)
 
 
-def init_db(db_path = CVEdb.OUTPUT_PICKLE_FILE):
+def init_db(db_path=CVEdb.OUTPUT_PICKLE_FILE):
     """
     Initialize a CVE (Common Vulnerabilities and Exposures) database.
 
@@ -217,15 +215,15 @@ def init_db(db_path = CVEdb.OUTPUT_PICKLE_FILE):
         return CVEdb()
 
 
-def handle_updated_cve(cvedb: CVEdb, files: list, args = None):
+def handle_updated_cve(cvedb: CVEdb, files: list, args=None):
     for f in tqdm(files):
         path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
         cvedb.create_cve_from_file(path, create_metrics=args.create_metrics)
 
 
-def handle_cve_json(cvedb: CVEdb, pattern: str = DEFAULT_PATTERN, args = None):
+def handle_cve_json(cvedb: CVEdb, pattern: str = DEFAULT_PATTERN, args=None):
     for f in tqdm(cvedb.CVE_HANDLER.get_cvelist_path().glob(pattern)):
-    # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
+        # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
         cvedb.create_cve_from_file(f, create_metrics=args.create_metrics if args else False)
 
 
@@ -243,11 +241,11 @@ def clone_or_update(args):
     dump_db(cvedb)
 
 
-def search(cvedb: CVEdb, year: int, id: str, pattern: str) -> dict | CVE:
+def search(cvedb: CVEdb, year: int, cve_id: str, pattern: str) -> Table | CVE:
     if year:
         return cvedb.get_cves_by_year(year, pattern)
-    elif id:
-        return cvedb.get_cve_by_id(id)
+    elif cve_id:
+        return cvedb.get_cve_by_id(cve_id)
 
 
 def main():
@@ -268,6 +266,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-
 # __all__ = ["CVEdb"]
-

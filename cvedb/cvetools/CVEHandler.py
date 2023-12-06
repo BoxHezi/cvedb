@@ -29,7 +29,9 @@ class CVE:
             else:
                 return Metrics(**vars(self.containers)[container_type]["metrics"][0])
 
-        self.containers.add_metrics(create_metrics_helper(self.containers.get_container_type()))
+        metrics = create_metrics_helper(self.containers.get_container_type())
+        self.containers.add_metrics(metrics)
+        return metrics
 
     def get_cve_id(self) -> str:
         return self.metadata.cveId
@@ -38,7 +40,7 @@ class CVE:
         info = self.metadata.cveId.split("-")
         return int(info[1])
 
-    def get_metrics(self) -> Metrics:
+    def get_metrics(self) -> Metrics | None:
         """
         Retrieves the metrics associated with the container of a specific type.
 
