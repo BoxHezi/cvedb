@@ -100,9 +100,9 @@ class CVEdb:
         year = int(cve_id.split("-")[1])
         # table = self.records.get(year, None)
         table = self.get_table_by_year(year)
-        if table:
+        try:
             return table.get_by_id(cve_id)
-        else:
+        except:
             # print(f"Creating New Table for Year {year}")
             handle_cve_json(self, f"**/{cve_id}.json", None)
             return self.get_cve_by_id(cve_id)
