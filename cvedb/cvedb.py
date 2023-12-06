@@ -49,8 +49,15 @@ class CVEdb:
         self.total_data_count = 0
         self.records: dict[int, Table] = {} # key-value pair, where key is table name, value is table
 
-    def create_cve_from_file(self, file_path: str, cve_handler: CVEHandler = CVE_HANDLER, create_metrics: bool = False):
-        # print(f"CREATING CVE FROM FILE: {file_path}")
+    def create_cve_from_file(self, file_path: str, cve_handler: CVEHandler = CVE_HANDLER, create_metrics: bool = False) -> CVE:
+        """
+        Creates a CVE instance from a JSON file and adds it to the database.
+
+        :param file_path: The path to the CVE JSON file.
+        :param cve_handler: The handler for creating the CVE instance. Defaults to CVE_HANDLER.
+        :param create_metrics: A boolean indicating whether to create metrics for the CVE instance. Defaults to False.
+        :return: The created CVE instance.
+        """
         cve = cve_handler.create_cve_from_json(file_path)
         if cve.contains_metrics():
             cve.create_metrics(True)
@@ -64,9 +71,6 @@ class CVEdb:
         Updates the statistics of the CVEdb object.
 
         This function calculates and updates the number of tables (or records) and the total data count across all tables.
-        The `table_count` is the number of keys in the `records` dictionary.
-        The `total_data_count` is calculated by iterating over all tables in `records` and summing up their `data_count` values.
-
         :return: A tuple containing the table count and the total data count.
         """
         self.table_count = len(self.records.keys())
@@ -77,6 +81,11 @@ class CVEdb:
         return self.table_count, self.total_data_count
 
     def upsert(self, data: CVE):
+        """
+        Inserts a new CVE instance into the database or updates an existing one.
+
+        :param data: The CVE instance to be inserted or updated.
+        """
         year = int(data.get_cve_year())
         if year not in self.records:
             self.records[year] = Table(year, 0, {})
@@ -84,16 +93,17 @@ class CVEdb:
         table.upsert(data)
 
     def get_cve_by_id(self, cve_id) -> CVE:
+        """
+        Retrieves a CVE instance from the database by its ID.
+
+        :param cve_id: The ID of the CVE instance.
+        :return: The retrieved CVE instance.
+        """
         year = int(cve_id.split("-")[1])
-        try:
-            table = self.records[year]
-        except:
-            self.records[year] = Table(year, 0, {})
-            table = self.records[year]
+        table = self.records.get(year, Table(year, 0, {}))
 
         try:
-            cve = table.get_by_id(cve_id)
-            return cve
+            return table.get_by_id(cve_id)
         except KeyError:
             # create CVE instance if there is no record found for the corresponding cve id
             handle_cve_json(self, f"**/{cve_id}.json", None)
@@ -101,7 +111,7 @@ class CVEdb:
 
     def get_cves_by_year(self, year, pattern = None):
         """
-        Retrieves all CVEs for a given year that match a certain pattern and returns them in a new Table instance.
+        Retrieves all CVEs for a given year that match a certain pattern.
 
         :param year: The year to select the table of CVEs.
         :param pattern: The pattern to filter the CVEs. This is optional.
@@ -132,16 +142,32 @@ class Table:
         self.data: dict[str, CVE] = data
 
     def upsert(self, data: CVE):
+        """
+        Inserts a new CVE instance into the table or updates an existing one.
+
+        :param data: The CVE instance to be inserted or updated.
+        """
         if not data.get_cve_id() in self.data:
             self.data_count += 1
         self.data.update({data.get_cve_id(): data})
 
     def get_by_id(self, cve_id) -> CVE:
+        """
+        Retrieves a CVE instance from the table by its ID.
+
+        :param cve_id: The ID of the CVE instance.
+        :return: The retrieved CVE instance.
+        """
         if not cve_id in self.data:
             raise KeyError(f"{cve_id} not found")
         return self.data[cve_id]
 
-    def get_data(self):
+    def get_data(self) -> dict:
+        """
+        Returns the data of the table.
+
+        :return: The data of the table.
+        """
         return self.data
 
     def __str__(self):

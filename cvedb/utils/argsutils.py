@@ -54,7 +54,6 @@ def process_pattern(pattern: str):
 
     This will return a regex that matches any string that contains "apple" and does not contain "orange".
     """
-    # if pattern:
     pattern_list = pattern.split(" ")
     positive_match = [p for p in pattern_list if not p.startswith("-")]
     negative_match = [p[1:] for p in pattern_list if p.startswith("-")]
@@ -63,5 +62,4 @@ def process_pattern(pattern: str):
     neg_regex = f"(^((?!{'|'.join(negative_match)}).)*$)" if negative_match else ""
 
     return pos_regex + neg_regex
-    # return r"()"
 
