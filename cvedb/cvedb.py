@@ -50,6 +50,7 @@ class CVEdb:
         self.records: dict[int, Table] = {} # key-value pair, where key is table name, value is table
 
     def create_cve_from_file(self, file_path: str, cve_handler: CVEHandler = CVE_HANDLER, create_metrics: bool = False):
+        # print(f"CREATING CVE FROM FILE: {file_path}")
         cve = cve_handler.create_cve_from_json(file_path)
         if cve.contains_metrics():
             cve.create_metrics(True)
@@ -76,7 +77,7 @@ class CVEdb:
         return self.table_count, self.total_data_count
 
     def upsert(self, data: CVE):
-        year = data.get_cve_year()
+        year = int(data.get_cve_year())
         if year not in self.records:
             self.records[year] = Table(year, 0, {})
         table = self.records[year]
@@ -84,8 +85,19 @@ class CVEdb:
 
     def get_cve_by_id(self, cve_id) -> CVE:
         year = int(cve_id.split("-")[1])
-        table = self.records[year]
-        return table.get_by_id(cve_id)
+        try:
+            table = self.records[year]
+        except:
+            self.records[year] = Table(year, 0, {})
+            table = self.records[year]
+
+        try:
+            cve = table.get_by_id(cve_id)
+            return cve
+        except KeyError:
+            # create CVE instance if there is no record found for the corresponding cve id
+            handle_cve_json(self, f"**/{cve_id}.json", None)
+            return table.get_by_id(cve_id)
 
     def get_cves_by_year(self, year, pattern = None):
         """
@@ -126,7 +138,7 @@ class Table:
 
     def get_by_id(self, cve_id) -> CVE:
         if not cve_id in self.data:
-            raise KeyError("CVE not found")
+            raise KeyError(f"{cve_id} not found")
         return self.data[cve_id]
 
     def get_data(self):
@@ -188,7 +200,7 @@ def handle_updated_cve(cvedb: CVEdb, files: list, args = None):
 def handle_cve_json(cvedb: CVEdb, pattern: str = DEFAULT_PATTERN, args = None):
     for f in tqdm(cvedb.CVE_HANDLER.get_cvelist_path().glob(pattern)):
     # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
-        cvedb.create_cve_from_file(f, create_metrics=args.create_metrics)
+        cvedb.create_cve_from_file(f, create_metrics=args.create_metrics if args else False)
 
 
 def clone_or_update(args):
