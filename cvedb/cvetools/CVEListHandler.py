@@ -3,7 +3,7 @@ import git
 from ..utils import pathutils
 
 # CVE List V5 Github Repo: https://github.com/CVEProject/cvelistV5
-CVE_LIST_V5_REPO = "git@github.com:CVEProject/cvelistV5.git"
+CVE_LIST_V5_REPO = "https://github.com/CVEProject/cvelistV5.git"
 
 """
 reference: https://stackoverflow.com/questions/51045540/python-progress-bar-for-git-clone

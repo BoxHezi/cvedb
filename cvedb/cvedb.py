@@ -87,7 +87,7 @@ class CVEdb:
         year = int(data.get_cve_year())
         if year not in self.records:
             self.records[year] = Table(year, 0, {})
-        table = self.records[year]
+        table = self.get_table_by_year(year)
         table.upsert(data)
 
     def get_cve_by_id(self, cve_id) -> CVE:
@@ -98,14 +98,14 @@ class CVEdb:
         :return: The retrieved CVE instance.
         """
         year = int(cve_id.split("-")[1])
-        table = self.records.get(year, Table(year, 0, {}))
-
-        try:
+        # table = self.records.get(year, None)
+        table = self.get_table_by_year(year)
+        if table:
             return table.get_by_id(cve_id)
-        except KeyError:
-            # create CVE instance if there is no record found for the corresponding cve id
+        else:
+            # print(f"Creating New Table for Year {year}")
             handle_cve_json(self, f"**/{cve_id}.json", None)
-            return table.get_by_id(cve_id)
+            return self.get_cve_by_id(cve_id)
 
     def get_cves_by_year(self, year, pattern=None):
         """
@@ -117,7 +117,7 @@ class CVEdb:
         """
         pattern = argsutils.process_pattern(pattern) if pattern else r"()"  # convert cli pattern to regex
         # print(f"Pattern: {pattern}")
-        table = self.records[int(year)]
+        table = self.get_table_by_year(year)
         out = {"table_name": table.table_name, "data_count": 0, "data": {}}
         for k, v in table.data.items():  # k: str, cveid; v: CVE instance
             cve_json = jsonlialize_cve(v)
@@ -127,6 +127,15 @@ class CVEdb:
 
         out_table = Table(out["table_name"], out["data_count"], out["data"])  # create a new Table instance
         return out_table
+
+    def get_table_by_year(self, year: int) -> "Table":
+        """
+        Retrieves the Table object for a given year from the records dictionary.
+
+        :param year: The year for which the Table object is to be retrieved.
+        :return: The Table object for the given year if it exists, otherwise None.
+        """
+        return self.records.get(int(year), None)
 
     def __str__(self) -> str:
         self.update_stat()
