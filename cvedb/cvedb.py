@@ -64,19 +64,31 @@ class CVEdb:
         self.upsert(cve)
         return cve
 
-    def update_stat(self):
+    def handle_cve_json(self, pattern=DEFAULT_PATTERN, create_metrics: bool=False, progress: bool=True):
         """
-        Updates the statistics of the CVEdb object.
+        Iterates over a list of files that match a given pattern in the CVE list path.
+        For each file, it creates a CVE instance and adds it to the database.
 
-        This function calculates and updates the number of tables (or records) and the total data count across all tables.
-        :return: A tuple containing the table count and the total data count.
+        :param pattern: A glob pattern to match files. Defaults to DEFAULT_PATTERN.
+        :param create_metrics: A boolean indicating whether to create metrics for the CVE instance. Defaults to False.
+        :param progress: A boolean indicating whether to show progress. Defaults to True.
         """
-        self.table_count = len(self.records.keys())
-        count = 0
-        for _, v in self.records.items():
-            count += v.data_count
-        self.total_data_count = count
-        return self.table_count, self.total_data_count
+        # print(f"PATTERN: {pattern}")
+        for f in tqdm(self.CVE_HANDLER.get_cvelist_path().glob(pattern), disable=not progress):
+            self.create_cve_from_file(f, create_metrics=create_metrics)
+
+    def handle_updated_cve(self, files, create_metrics: bool=False, progress: bool=True):
+        """
+        Iterates over a provided list of files.
+        For each file, it creates a CVE instance and adds it to the database.
+
+        :param files: A list of files.
+        :param create_metrics: A boolean indicating whether to create metrics for the CVE instance. Defaults to False.
+        :param progress: A boolean indicating whether to show progress. Defaults to True.
+        """
+        for f in tqdm(files, disable=not progress):
+            path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
+            self.create_cve_from_file(path, create_metrics=create_metrics)
 
     def upsert(self, data: CVE):
         """
@@ -104,7 +116,7 @@ class CVEdb:
             return table.get_by_id(cve_id)
         except:
             # print(f"Creating New Table for Year {year}")
-            handle_cve_json(self, f"**/{cve_id}.json", None)
+            self.handle_cve_json(f"**/{cve_id}.json", True, False)
             return self.get_cve_by_id(cve_id)
 
     def get_cves_by_year(self, year, pattern=None):
@@ -136,6 +148,20 @@ class CVEdb:
         :return: The Table object for the given year if it exists, otherwise None.
         """
         return self.records.get(int(year), None)
+
+    def update_stat(self):
+        """
+        Updates the statistics of the CVEdb object.
+
+        This function calculates and updates the number of tables (or records) and the total data count across all tables.
+        :return: A tuple containing the table count and the total data count.
+        """
+        self.table_count = len(self.records.keys())
+        count = 0
+        for _, v in self.records.items():
+            count += v.data_count
+        self.total_data_count = count
+        return self.table_count, self.total_data_count
 
     def __str__(self) -> str:
         self.update_stat()
@@ -224,16 +250,16 @@ def init_db(db_path=CVEdb.OUTPUT_PICKLE_FILE):
         return CVEdb()
 
 
-def handle_updated_cve(cvedb: CVEdb, files: list, args=None):
-    for f in tqdm(files):
-        path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
-        cvedb.create_cve_from_file(path, create_metrics=args.create_metrics)
+# def handle_updated_cve(cvedb: CVEdb, files: list, args=None):
+#     for f in tqdm(files):
+#         path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
+#         cvedb.create_cve_from_file(path, create_metrics=args.create_metrics)
 
 
-def handle_cve_json(cvedb: CVEdb, pattern: str = DEFAULT_PATTERN, args=None):
-    for f in tqdm(cvedb.CVE_HANDLER.get_cvelist_path().glob(pattern)):
-        # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
-        cvedb.create_cve_from_file(f, create_metrics=args.create_metrics if args else False)
+# def handle_cve_json(cvedb: CVEdb, pattern: str = DEFAULT_PATTERN, args=None):
+#     for f in tqdm(cvedb.CVE_HANDLER.get_cvelist_path().glob(pattern)):
+#         # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
+#         cvedb.create_cve_from_file(f, create_metrics=args.create_metrics if args else False)
 
 
 def clone_or_update(args):
@@ -241,12 +267,13 @@ def clone_or_update(args):
         raise Exception("Invalid arguments combination")
     cvedb = init_db()
     if args.clone:
-        handle_cve_json(cvedb, args=args)
+        # handle_cve_json(cvedb, args=args)
+        cvedb.handle_cve_json()
     elif args.update:
         repo = CVEListHandler()
         updated = repo.find_updated_files()
         repo.pull_from_remote()
-        handle_updated_cve(cvedb, files=updated, args=args)
+        cvedb.handle_updated_cve(cvedb, files=updated, args=args)
     dump_db(cvedb)
 
 
