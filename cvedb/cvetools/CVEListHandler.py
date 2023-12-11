@@ -1,3 +1,4 @@
+from tqdm import tqdm
 import git
 
 from ..utils import pathutils
@@ -12,9 +13,19 @@ add Clone Progress bar
 class CloneProgress(git.RemoteProgress):
     def __init__(self) -> None:
         super().__init__()
+        self.pbar = tqdm()
 
-    def update(self, *args):
-        print(self._cur_line, end="\r")
+    def update(self, op_code, cur_count, max_count=None, message=''):
+        if op_code & self.BEGIN:
+            desc = f"{self._cur_line[:self._cur_line.rfind(':')]}{': ' + message if message else ''}"
+            self.pbar.set_description(desc)
+
+        self.pbar.total = max_count
+        self.pbar.n = cur_count
+        self.pbar.refresh()
+
+        if op_code & self.END:
+            print()
 
 
 class CVEListHandler:
@@ -28,6 +39,7 @@ class CVEListHandler:
         if not pathutils.path_exists(self.local_repo_path):
             print("Cloning Repo...")
             self.clone_to_local()
+            print("Done.")
         self.repo = git.Repo(self.local_repo_path)
 
     def clone_to_local(self):
