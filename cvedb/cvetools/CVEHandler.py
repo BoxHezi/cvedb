@@ -1,5 +1,7 @@
 import json
 
+from typing import Optional
+
 from ..utils import pathutils
 from .CVEComponents import *
 from ..nvdapi import CVEQuery
@@ -40,7 +42,7 @@ class CVE:
         info = self.metadata.cveId.split("-")
         return int(info[1])
 
-    def get_metrics(self) -> Metrics | None:
+    def get_metrics(self) -> Optional[Metrics]:
         """
         Retrieves the metrics associated with the container of a specific type.
 
@@ -51,7 +53,7 @@ class CVE:
             return containers["metrics"]
         return None  # when no metrics entry found
 
-    def get_cvss_score(self) -> float | None:
+    def get_cvss_score(self) -> Optional[float]:
         """
         Retrieves the CVSS base score from the metrics of the container.
 

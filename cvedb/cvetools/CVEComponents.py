@@ -1,3 +1,5 @@
+from typing import Optional
+
 """Class definiations are defined based on the CVE JSON V5 Schema:
 https://github.com/CVEProject/cve-schema/blob/master/schema/v5.0/CVE_JSON_5.0_schema.json
 
@@ -46,7 +48,7 @@ class Container:
     def get_metrics(self, container_type):
         return vars(self)[container_type]["metrics"]
 
-    def get_container_type(self) -> str | None:
+    def get_container_type(self) -> Optional[str]:
         if isinstance(self, CnaContainer):
             return "cna"
         elif isinstance(self, AdpContainer):

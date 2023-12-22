@@ -11,7 +11,7 @@ reference: https://stackoverflow.com/questions/51045540/python-progress-bar-for-
 add Clone Progress bar
 """
 class CloneProgress(git.RemoteProgress):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
         self.pbar = tqdm()
 
