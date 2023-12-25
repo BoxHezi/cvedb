@@ -2,6 +2,8 @@ import re
 import json
 from tqdm import tqdm
 
+from typing import Union
+
 from .cvetools.CVEHandler import *
 from .cvetools.CVEListHandler import CVEListHandler
 
@@ -250,24 +252,11 @@ def init_db(db_path=CVEdb.OUTPUT_PICKLE_FILE):
         return CVEdb()
 
 
-# def handle_updated_cve(cvedb: CVEdb, files: list, args=None):
-#     for f in tqdm(files):
-#         path = pathutils.DEFAULT_PROJECT_LOCAL_REPO / f
-#         cvedb.create_cve_from_file(path, create_metrics=args.create_metrics)
-
-
-# def handle_cve_json(cvedb: CVEdb, pattern: str = DEFAULT_PATTERN, args=None):
-#     for f in tqdm(cvedb.CVE_HANDLER.get_cvelist_path().glob(pattern)):
-#         # for f in cve_handler.get_cvelist_path().glob("**/CVE-2013-3703.json"): # testing purpose, one JSON contains metrics
-#         cvedb.create_cve_from_file(f, create_metrics=args.create_metrics if args else False)
-
-
 def clone_or_update(args):
     if args.clone and args.update:
         raise Exception("Invalid arguments combination")
     cvedb = init_db()
     if args.clone:
-        # handle_cve_json(cvedb, args=args)
         cvedb.handle_cve_json()
     elif args.update:
         repo = CVEListHandler()
@@ -277,7 +266,7 @@ def clone_or_update(args):
     dump_db(cvedb)
 
 
-def search(cvedb: CVEdb, year: int, cve_id: str, pattern: str) -> Table | CVE:
+def search(cvedb: CVEdb, year: int, cve_id: str, pattern: str) -> Union[Table, CVE]:
     if year:
         return cvedb.get_cves_by_year(year, pattern)
     elif cve_id:
