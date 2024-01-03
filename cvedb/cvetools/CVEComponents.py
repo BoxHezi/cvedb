@@ -56,6 +56,13 @@ class Container:
         else:
             return None
 
+    def get_description_by_lang(self, lang="en") -> str:
+        desc_list = vars(self)[self.get_container_type()]["descriptions"]
+        for i in desc_list:
+            if i["lang"] == lang:
+                return i["value"]
+        raise ValueError(f"No description found for lang: {lang}")
+
 
 class CnaContainer(Container):
     def __init__(self, **kwargs):

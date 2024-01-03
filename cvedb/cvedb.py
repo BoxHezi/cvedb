@@ -285,7 +285,7 @@ def main():
         data = search(cvedb, args.year, args.id, args.pattern)
         # print(json.dumps(jsonlialize_cve(data), indent=2))
         # print(type(data))
-        return data
+        return str(data)
 
 
 if __name__ == "__main__":

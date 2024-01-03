@@ -62,6 +62,16 @@ class CVE:
         metrics = self.get_metrics()
         return float(metrics["baseScore"]) if metrics else None
 
+    def __str__(self) -> str:
+        """
+        print basic CVE information including: CVE ID, cvss score, description
+        """
+        out = {}
+        out["cveId"] = self.get_cve_id()
+        out["cvssScore"] = self.get_cvss_score()
+        out["description"] = self.containers.get_description_by_lang()
+        return json.dumps(out, indent=4)
+
 
 class CVEHandler:
     def __init__(self, cvelist_path):
