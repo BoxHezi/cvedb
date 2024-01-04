@@ -10,6 +10,7 @@ from .cvetools.CVEListHandler import CVEListHandler
 from .utils import pickleutils
 from .utils import pathutils
 from .utils import argsutils
+from .utils import pipeutils
 
 from .version import __version__
 
@@ -104,22 +105,22 @@ class CVEdb:
         table = self.get_table_by_year(year)
         table.upsert(data)
 
-    def get_cve_by_id(self, cve_id) -> CVE:
+    def get_cve_by_id(self, cve_ids) -> CVE:
         """
         Retrieves a CVE instance from the database by its ID.
 
-        :param cve_id: The ID of the CVE instance.
+        :param cve_ids: The ID of the CVE instance.
         :return: The retrieved CVE instance.
         """
-        year = int(cve_id.split("-")[1])
+        year = int(cve_ids.split("-")[1])
         # table = self.records.get(year, None)
         table = self.get_table_by_year(year)
         try:
-            return table.get_by_id(cve_id)
+            return table.get_by_id(cve_ids)
         except:
             # print(f"Creating New Table for Year {year}")
-            self.handle_cve_json(f"**/{cve_id}.json", True, False)
-            return self.get_cve_by_id(cve_id)
+            self.handle_cve_json(f"**/{cve_ids}.json", True, False)
+            return self.get_cve_by_id(cve_ids)
 
     def get_cves_by_year(self, year, pattern=None):
         """
@@ -182,20 +183,20 @@ class Table:
 
         :param data: The CVE instance to be inserted or updated.
         """
-        if not data.get_cve_id() in self.data:
+        if not data.get_cve_ids() in self.data:
             self.data_count += 1
-        self.data.update({data.get_cve_id(): data})
+        self.data.update({data.get_cve_ids(): data})
 
-    def get_by_id(self, cve_id) -> CVE:
+    def get_by_id(self, cve_ids) -> CVE:
         """
         Retrieves a CVE instance from the table by its ID.
 
-        :param cve_id: The ID of the CVE instance.
+        :param cve_ids: The ID of the CVE instance.
         :return: The retrieved CVE instance.
         """
-        if not cve_id in self.data:
-            raise KeyError(f"{cve_id} not found")
-        return self.data[cve_id]
+        if not cve_ids in self.data:
+            raise KeyError(f"{cve_ids} not found")
+        return self.data[cve_ids]
 
     def get_data(self) -> dict:
         """
@@ -266,26 +267,40 @@ def clone_or_update(args):
     dump_db(cvedb)
 
 
-def search(cvedb: CVEdb, year: int, cve_id: str, pattern: str) -> Union[Table, CVE]:
+def search(cvedb: CVEdb, year: int, cve_ids: str | list, pattern: str) -> Union[Table, CVE, list[CVE]]:
     if year:
         return cvedb.get_cves_by_year(year, pattern)
-    elif cve_id:
-        return cvedb.get_cve_by_id(cve_id)
+    elif cve_ids:
+        if isinstance(cve_ids, str):
+            return cvedb.get_cve_by_id(cve_ids)
+        elif isinstance(cve_ids, list):
+            out = []
+            for i in cve_ids:
+                out.append(cvedb.get_cve_by_id(i))
+            return out
+        # # cve = cvedb.get_cve_by_id(cve_ids)
+        # return cvedb.get_cve_by_id(cve_ids)
 
 
 def main():
     args = argsutils.init_argparse().parse_args()
-    # print(vars(args))
     if args.version:
         print(f"CVEdb - {__version__}")
     elif args.clone or args.update:
         clone_or_update(args)
     elif args.search:
         cvedb = init_db()
+        if not args.id and pipeutils.has_pipe_data():
+            args.id = pipeutils.read_from_pipe()
+
         data = search(cvedb, args.year, args.id, args.pattern)
+        if isinstance(data, CVE):
+            print(str(data))
+        elif isinstance(data, list):
+            for i in data:
+                print(str(i))
         # print(json.dumps(jsonlialize_cve(data), indent=2))
         # print(type(data))
-        return str(data)
 
 
 if __name__ == "__main__":

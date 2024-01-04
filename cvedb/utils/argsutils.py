@@ -17,7 +17,7 @@ def init_argparse() -> argparse.ArgumentParser:
     search_group.add_argument("-y", "--year", help="Specify the year for searching CVEs\n"
                               "This will return a Table instance")
     search_group.add_argument("-i", "--id", help="Specify CVE id to search for\n"
-                              "This will return a CVE instance")
+                              "This will return a CVE instance", nargs="?")
 
     arg.add_argument("-v", "--version", help="Print version", action="store_true")
     return arg
