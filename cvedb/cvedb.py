@@ -271,19 +271,7 @@ def search(cvedb: CVEdb, year: int, cve_ids: list, pattern: str) -> Union[Table,
     if year:
         return cvedb.get_cves_by_year(year, pattern)
     elif cve_ids:
-        out = []
-        for i in cve_ids:
-            out.append(cvedb.get_cve_by_id(i))
-        return out
-        # if isinstance(cve_ids, str):
-        #     return cvedb.get_cve_by_id(cve_ids)
-        # elif isinstance(cve_ids, list):
-        #     out = []
-        #     for i in cve_ids:
-        #         out.append(cvedb.get_cve_by_id(i))
-        #     return out
-        # # cve = cvedb.get_cve_by_id(cve_ids)
-        # return cvedb.get_cve_by_id(cve_ids)
+        return [cvedb.get_cve_by_id(i) for i in cve_ids]
 
 
 def main():
@@ -298,14 +286,10 @@ def main():
             args.id = pipeutils.read_from_pipe()
         else:
             args.id = args.id.strip().split(" ")  # convert cmd arguments into list
+
         data = search(cvedb, args.year, args.id, args.pattern)
         for cve in data:
             print(str(cve))
-        # if isinstance(data, CVE):
-        #     print(str(data))
-        # elif isinstance(data, list):
-        #     for i in data:
-        #         print(str(i))
         # print(json.dumps(jsonlialize_cve(data), indent=2))
         # print(type(data))
 
