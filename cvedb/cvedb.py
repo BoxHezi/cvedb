@@ -183,9 +183,9 @@ class Table:
 
         :param data: The CVE instance to be inserted or updated.
         """
-        if not data.get_cve_ids() in self.data:
+        if not data.get_cve_id() in self.data:
             self.data_count += 1
-        self.data.update({data.get_cve_ids(): data})
+        self.data.update({data.get_cve_id(): data})
 
     def get_by_id(self, cve_ids) -> CVE:
         """
