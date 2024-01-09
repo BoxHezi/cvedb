@@ -132,7 +132,12 @@ class CVEdb:
         """
         pattern = argsutils.process_pattern(pattern) if pattern else r"()"  # convert cli pattern to regex
         # print(f"Pattern: {pattern}")
-        table = self.get_table_by_year(year)
+        try:
+            table = self.get_table_by_year(year)
+        except ValueError as e:
+            print(e)
+            return None
+
         out = {"table_name": table.table_name, "data_count": 0, "data": {}}
         for k, v in table.data.items():  # k: str, cveid; v: CVE instance
             cve_json = jsonlialize_cve(v)
@@ -150,7 +155,10 @@ class CVEdb:
         :param year: The year for which the Table object is to be retrieved.
         :return: The Table object for the given year if it exists, otherwise None.
         """
-        return self.records.get(int(year), None)
+        table = self.records.get(int(year), None)
+        if not table:
+            raise ValueError(f"No table found for year {year}")
+        return table
 
     def update_stat(self):
         """
@@ -282,14 +290,17 @@ def main():
         clone_or_update(args)
     elif args.search:
         cvedb = init_db()
-        if not args.id and pipeutils.has_pipe_data():
-            args.id = pipeutils.read_from_pipe()
+        if args.year:
+            data = search(cvedb, int(args.year), None, args.pattern)
         else:
-            args.id = args.id.strip().split(" ")  # convert cmd arguments into list
+            if not args.id and pipeutils.has_pipe_data():
+                args.id = pipeutils.read_from_pipe()
+            else:
+                args.id = args.id.strip().split(" ")  # convert cmd arguments into list
 
-        data = search(cvedb, args.year, args.id, args.pattern)
-        for cve in data:
-            print(str(cve))
+            data = search(cvedb, None, args.id, args.pattern)
+            for cve in data:
+                print(str(cve))
         # print(json.dumps(jsonlialize_cve(data), indent=2))
         # print(type(data))
 
