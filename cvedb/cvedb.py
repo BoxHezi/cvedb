@@ -291,7 +291,8 @@ def main():
     elif args.search:
         cvedb = init_db()
         if args.year:
-            data = search(cvedb, int(args.year), None, args.pattern)
+            table = search(cvedb, int(args.year), None, args.pattern)
+            table and print(table)
         else:
             if not args.id and pipeutils.has_pipe_data():
                 args.id = pipeutils.read_from_pipe()
