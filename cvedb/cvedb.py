@@ -156,8 +156,6 @@ class CVEdb:
         :return: The Table object for the given year if it exists, otherwise None.
         """
         table = self.records.get(int(year), None)
-        if not table:
-            raise ValueError(f"No table found for year {year}")
         return table
 
     def update_stat(self):
