@@ -20,7 +20,8 @@ setup(
         "nvdlib",
         "tqdm",
         "pgzip",
-        "GitPython"
+        "GitPython",
+        "sqlalchemy"
     ],
     entry_points={
         'console_scripts': [
